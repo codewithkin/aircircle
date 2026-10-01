@@ -193,6 +193,7 @@ export function releaseAllPlayers() {
   playToken++;
   wantsToPlay = false;
   attempt = 0;
+  hasPlayed = false;
   waitingForNetwork = false;
   teardown();
   for (const stray of Array.from(livePlayers)) hardRelease(stray);
@@ -265,6 +266,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     // happens until the listener chooses Retry, another station, or Stop.
     wantsToPlay = false;
     attempt = 0;
+    hasPlayed = false;
     set({ status: "error", error, retryAttempt: 0, retryAt: null });
   };
 
@@ -331,9 +333,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     // Mid-reconnect the listener is told "Reconnecting" until audio returns,
     // not walked back through Connecting and Buffering.
-    if (attempt > 0) return;
-
-    const next = status.isLoaded ? "buffering" : "connecting";
+    const next = attempt > 0 ? "reconnecting" : status.isLoaded ? "buffering" : "connecting";
     if (get().status !== next) set({ status: next });
   };
 
@@ -458,7 +458,9 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     pause: () => {
       const { station, status } = get();
-      if (!station || status === "idle" || status === "stopped" || status === "error") return;
+      const isInactive =
+        status === "idle" || status === "paused" || status === "stopped" || status === "error";
+      if (!station || isInactive) return;
 
       wantsToPlay = false;
       waitingForNetwork = false;
