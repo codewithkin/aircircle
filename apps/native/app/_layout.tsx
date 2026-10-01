@@ -7,10 +7,12 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
+import { startRecordingGuard } from "@/lib/recording/recording-guard";
 import { useFavorites } from "@/stores/favorites";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { releaseAllPlayers, usePlayer } from "@/stores/player";
 import { useRecents } from "@/stores/recents";
+import { useRecordings } from "@/stores/recordings";
 import { startSleepTimerService } from "@/stores/sleep-timer";
 
 export const unstable_settings = {
@@ -33,16 +35,19 @@ export default function Layout() {
     usePlayer.getState().restore();
     useRecents.getState().restore();
     useFavorites.getState().restore();
+    useRecordings.getState().restore();
 
     void useNetwork.getState().check();
     const unsubNetwork = startNetworkListener();
     const unsubRecovery = startNetworkRecovery();
     const unsubSleepTimer = startSleepTimerService();
+    const unsubRecordingGuard = startRecordingGuard();
 
     return () => {
       unsubNetwork();
       unsubRecovery();
       unsubSleepTimer();
+      unsubRecordingGuard();
       releaseAllPlayers();
     };
   }, []);
