@@ -59,6 +59,15 @@ export type PauseReason = "user" | "external";
 
 let player: AudioPlayer | null = null;
 let statusSub: { remove: () => void } | null = null;
+let stallTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * How long a stream gets to actually start producing audio before it's
+ * treated as failed. Without this, a station that connects but never reaches
+ * `playing: true` — throttled, stuck buffering, a format the device silently
+ * can't decode — would sit in Connecting forever with no error to show.
+ */
+const STALL_TIMEOUT_MS = 15000;
 
 /**
  * Every player handed out by `createAudioPlayer`. Belt-and-braces: if a race
@@ -96,7 +105,15 @@ function hardRelease(target: AudioPlayer) {
  * reference is cleared BEFORE release, so a concurrent call can neither
  * double-release the same instance nor skip one.
  */
+function clearStall() {
+  if (stallTimer) {
+    clearTimeout(stallTimer);
+    stallTimer = null;
+  }
+}
+
 function teardown() {
+  clearStall();
   if (statusSub) {
     try {
       statusSub.remove();
@@ -155,6 +172,16 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     });
   };
 
+  /** If audio isn't flowing by the deadline and no error ever fired, fail anyway. */
+  const armStall = () => {
+    clearStall();
+    const token = playToken;
+    stallTimer = setTimeout(() => {
+      if (token !== playToken || !wantsToPlay) return;
+      if (get().status !== "playing") fail("Timed out waiting for audio");
+    }, STALL_TIMEOUT_MS);
+  };
+
   const onStatus = (status: AudioStatus) => {
     if (status.error) {
       fail(status.error);
@@ -162,6 +189,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     }
 
     if (status.playing) {
+      clearStall();
       wantsToPlay = true;
       if (get().status !== "playing") set({ status: "playing", pauseReason: null, error: null });
       return;
@@ -185,6 +213,10 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       }
       return;
     }
+
+    // Dropping out of playing into buffering gets the same deadline as a
+    // first connect — a stream can stall mid-broadcast without ever erroring.
+    if (get().status === "playing") armStall();
 
     const next = status.isLoaded ? "buffering" : "connecting";
     if (get().status !== next) set({ status: next });
@@ -220,6 +252,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       });
 
       next.play();
+      armStall();
     } catch (e) {
       if (token !== playToken) return;
       fail(e);
@@ -265,6 +298,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       if (!station || status === "idle" || status === "stopped" || status === "error") return;
 
       wantsToPlay = false;
+      // An intentional pause is a valid reason for audio not to be flowing.
+      clearStall();
 
       if (status === "playing" || status === "buffering") {
         try {
@@ -299,6 +334,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       set({ status: "buffering", pauseReason: null, error: null });
       try {
         player.play();
+        armStall();
       } catch {
         await connect();
       }
