@@ -9,6 +9,7 @@ import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
 import { startRecordingGuard } from "@/lib/recording/recording-guard";
 import { useFavorites } from "@/stores/favorites";
+import { startNowPlayingService } from "@/stores/now-playing";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { releaseAllPlayers, usePlayer } from "@/stores/player";
 import { useRecents } from "@/stores/recents";
@@ -42,12 +43,14 @@ export default function Layout() {
     const unsubRecovery = startNetworkRecovery();
     const unsubSleepTimer = startSleepTimerService();
     const unsubRecordingGuard = startRecordingGuard();
+    const unsubNowPlaying = startNowPlayingService();
 
     return () => {
       unsubNetwork();
       unsubRecovery();
       unsubSleepTimer();
       unsubRecordingGuard();
+      unsubNowPlaying();
       releaseAllPlayers();
     };
   }, []);
