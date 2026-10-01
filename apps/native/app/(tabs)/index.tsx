@@ -104,7 +104,7 @@ export default function Home() {
 
           <Rise index={1} style={{ marginTop: 20 }}>
             <SearchField
-              onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+              onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
               onNearbyPress={() => router.push("/nearby")}
             />
           </Rise>
@@ -229,7 +229,7 @@ export default function Home() {
                   label="Search by name"
                   variant="card"
                   height={46}
-                  onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+                  onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
                 />
               </View>
             </Gradient>

@@ -288,7 +288,7 @@ export default function StationDetail() {
                 label="Search stations"
                 icon="search"
                 height={52}
-                onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+                onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
                 containerStyle={{ alignSelf: "flex-start", marginTop: 8 }}
               />
             </>

@@ -252,7 +252,7 @@ export default function Browse() {
           <IconButton
             icon="search"
             accessibilityLabel="Search stations"
-            onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+            onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
           />
         </Rise>
 

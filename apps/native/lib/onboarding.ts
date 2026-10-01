@@ -16,7 +16,7 @@ export function finishOnboarding(router: Router, then?: "search" | "nearby"): vo
   if (!then) return;
 
   setTimeout(() => {
-    if (then === "search") router.navigate({ pathname: "/search", params: { focus: "1" } });
+    if (then === "search") router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } });
     else router.push("/nearby");
   }, 350);
 }
