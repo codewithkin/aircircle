@@ -3,12 +3,17 @@ import type { AudioPlayer, AudioStatus } from "expo-audio";
 import { create } from "zustand";
 
 import { getPlayableStreamUrl } from "@/lib/api/playlist";
+import { sendStationClick } from "@/lib/api/radio-browser";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { backoffDelay } from "@/lib/playback/backoff";
 import { classifyPlaybackError, isRetryable } from "@/lib/playback/errors";
 import type { PlaybackError } from "@/lib/playback/errors";
+import { getJson, remove, setJson } from "@/lib/storage";
 import type { Station } from "@/lib/types";
 import { useNetwork } from "@/stores/network";
+import { useRecents } from "@/stores/recents";
+
+const LAST_STATION_KEY = "player.lastStation";
 
 /**
  * The one authoritative playback state. Every surface — Mini Player, Now
@@ -208,6 +213,11 @@ type PlayerState = {
 
 type PlayerActions = {
   setup: () => Promise<void>;
+  /**
+   * Loads the last station from storage without starting it, so Home can
+   * offer Resume. Nothing connects until the listener presses Play.
+   */
+  restore: () => void;
   play: (station: Station) => Promise<void>;
   pause: () => void;
   resume: () => Promise<void>;
@@ -416,6 +426,14 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       set({ isReady: true });
     },
 
+    restore: () => {
+      // Never overwrite something already loaded — this is launch-time
+      // hydration, and losing a race with a real Play would be silent.
+      if (get().station) return;
+      const last = getJson<Station>(LAST_STATION_KEY);
+      if (last?.stationuuid && last.url) set({ station: last, status: "stopped" });
+    },
+
     play: async (station: Station) => {
       const { station: current, status } = get();
 
@@ -428,6 +446,13 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       attempt = 0;
       hasPlayed = false;
       set({ station });
+
+      // Recorded per Play press, not per connection, so automatic reconnects
+      // neither reshuffle Recents nor inflate the station's click count.
+      setJson(LAST_STATION_KEY, station);
+      useRecents.getState().add(station);
+      sendStationClick(station.stationuuid).catch(() => {});
+
       await connect();
     },
 
@@ -500,6 +525,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     dismiss: () => {
       releaseAllPlayers();
+      remove(LAST_STATION_KEY);
       set({
         station: null,
         status: "idle",
