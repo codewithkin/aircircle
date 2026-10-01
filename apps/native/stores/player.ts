@@ -4,7 +4,8 @@ import { create } from "zustand";
 
 import { getPlayableStreamUrl } from "@/lib/api/playlist";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
-import { classifyPlaybackError } from "@/lib/playback/errors";
+import { backoffDelay } from "@/lib/playback/backoff";
+import { classifyPlaybackError, isRetryable } from "@/lib/playback/errors";
 import type { PlaybackError } from "@/lib/playback/errors";
 import type { Station } from "@/lib/types";
 import { useNetwork } from "@/stores/network";
@@ -65,6 +66,29 @@ let lockScreenTimer: ReturnType<typeof setTimeout> | null = null;
 
 const LOCK_SCREEN_DELAY_MS = 400;
 
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let stableTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Automatic reconnects made since audio was last stable. */
+let attempt = 0;
+
+/** Whether this station has produced audio since Play was pressed. */
+let hasPlayed = false;
+
+/**
+ * A stream that was playing and dropped has earned patience. One that never
+ * started is far more likely to be dead, so it gets a shorter leash before the
+ * listener is told.
+ */
+const RETRY_BUDGET_AFTER_AUDIO = 5;
+const RETRY_BUDGET_BEFORE_AUDIO = 2;
+
+/**
+ * Audio must hold this long before the retry budget refills. Refilling on the
+ * first frame would let a stream that plays a second and dies retry forever.
+ */
+const STABLE_AFTER_MS = 10000;
+
 /**
  * How long a stream gets to actually start producing audio before it's
  * treated as failed. Without this, a station that connects but never reaches
@@ -123,6 +147,14 @@ function clearStall() {
 
 function teardown() {
   clearStall();
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  if (stableTimer) {
+    clearTimeout(stableTimer);
+    stableTimer = null;
+  }
   if (lockScreenTimer) {
     clearTimeout(lockScreenTimer);
     lockScreenTimer = null;
@@ -148,6 +180,7 @@ function teardown() {
 export function releaseAllPlayers() {
   playToken++;
   wantsToPlay = false;
+  attempt = 0;
   teardown();
   for (const stray of Array.from(livePlayers)) hardRelease(stray);
   livePlayers.clear();
@@ -158,6 +191,10 @@ type PlayerState = {
   status: PlaybackStatus;
   pauseReason: PauseReason | null;
   error: PlaybackError | null;
+  /** Which automatic reconnect is in progress; 0 when not reconnecting. */
+  retryAttempt: number;
+  /** Epoch ms of the next automatic reconnect, for a countdown. */
+  retryAt: number | null;
   isReady: boolean;
 };
 
@@ -171,6 +208,8 @@ type PlayerActions = {
   stop: () => void;
   /** Stops and unloads the station — the Mini Player goes away with it. */
   dismiss: () => void;
+  /** "Retry now": reconnects immediately with a fresh retry budget. */
+  retry: () => Promise<void>;
 };
 
 export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
@@ -178,11 +217,25 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     teardown();
     if (!wantsToPlay) return;
 
+    const error = classifyPlaybackError(reason, useNetwork.getState().isConnected);
+    const budget = hasPlayed ? RETRY_BUDGET_AFTER_AUDIO : RETRY_BUDGET_BEFORE_AUDIO;
+
+    if (isRetryable(error.kind) && attempt < budget) {
+      const delay = backoffDelay(attempt);
+      attempt++;
+      set({ status: "reconnecting", error, retryAttempt: attempt, retryAt: Date.now() + delay });
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        void connect();
+      }, delay);
+      return;
+    }
+
+    // Budget spent, or a failure retrying can't fix. Terminal: nothing more
+    // happens until the listener chooses Retry, another station, or Stop.
     wantsToPlay = false;
-    set({
-      status: "error",
-      error: classifyPlaybackError(reason, useNetwork.getState().isConnected),
-    });
+    attempt = 0;
+    set({ status: "error", error, retryAttempt: 0, retryAt: null });
   };
 
   /** If audio isn't flowing by the deadline and no error ever fired, fail anyway. */
@@ -204,7 +257,16 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     if (status.playing) {
       clearStall();
       wantsToPlay = true;
-      if (get().status !== "playing") set({ status: "playing", pauseReason: null, error: null });
+      hasPlayed = true;
+      if (get().status !== "playing") {
+        set({ status: "playing", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
+        if (!stableTimer) {
+          stableTimer = setTimeout(() => {
+            stableTimer = null;
+            attempt = 0;
+          }, STABLE_AFTER_MS);
+        }
+      }
       return;
     }
 
@@ -215,6 +277,12 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     }
 
     if (!wantsToPlay) return;
+
+    // Audio stopped flowing, so it is no longer on its way to being stable.
+    if (stableTimer) {
+      clearTimeout(stableTimer);
+      stableTimer = null;
+    }
 
     if (status.isLoaded && !status.isBuffering) {
       // Loaded, not buffering, not playing, and we never asked for that: the
@@ -231,6 +299,10 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     // first connect — a stream can stall mid-broadcast without ever erroring.
     if (get().status === "playing") armStall();
 
+    // Mid-reconnect the listener is told "Reconnecting" until audio returns,
+    // not walked back through Connecting and Buffering.
+    if (attempt > 0) return;
+
     const next = status.isLoaded ? "buffering" : "connecting";
     if (get().status !== next) set({ status: next });
   };
@@ -246,7 +318,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     // Synchronous, before any await — this is what stops stacking.
     teardown();
 
-    set({ status: "connecting", pauseReason: null, error: null });
+    if (attempt > 0) set({ status: "reconnecting", pauseReason: null, retryAt: null });
+    else set({ status: "connecting", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
 
     try {
       const streamUrl = await getPlayableStreamUrl(station);
@@ -299,6 +372,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     status: "idle",
     pauseReason: null,
     error: null,
+    retryAttempt: 0,
+    retryAt: null,
     isReady: false,
 
     setup: async () => {
@@ -324,6 +399,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       if (isActive && current?.stationuuid === station.stationuuid) return;
 
       wantsToPlay = true;
+      attempt = 0;
+      hasPlayed = false;
       set({ station });
       await connect();
     },
@@ -349,7 +426,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         teardown();
       }
 
-      set({ status: "paused", pauseReason: "user" });
+      set({ status: "paused", pauseReason: "user", error: null, retryAttempt: 0, retryAt: null });
     },
 
     resume: async () => {
@@ -357,6 +434,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       if (!station || status === "playing") return;
 
       wantsToPlay = true;
+      attempt = 0;
 
       // Without a live player there is nothing to un-pause — reconnect from
       // scratch. The same goes for one that errored: the native object may
@@ -377,7 +455,12 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     toggle: async () => {
       const { status } = get();
-      if (status === "playing" || status === "connecting" || status === "buffering") get().pause();
+      const isActive =
+        status === "playing" ||
+        status === "connecting" ||
+        status === "buffering" ||
+        status === "reconnecting";
+      if (isActive) get().pause();
       else await get().resume();
     },
 
@@ -385,12 +468,26 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       // Also invalidates any in-flight connect() so it can't resurrect audio.
       releaseAllPlayers();
       if (!get().station) return;
-      set({ status: "stopped", pauseReason: null, error: null });
+      set({ status: "stopped", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
     },
 
     dismiss: () => {
       releaseAllPlayers();
-      set({ station: null, status: "idle", pauseReason: null, error: null });
+      set({
+        station: null,
+        status: "idle",
+        pauseReason: null,
+        error: null,
+        retryAttempt: 0,
+        retryAt: null,
+      });
+    },
+
+    retry: async () => {
+      if (!get().station) return;
+      wantsToPlay = true;
+      attempt = 0;
+      await connect();
     },
   };
 });
