@@ -5,6 +5,7 @@ export type PlaybackErrorKind =
   | "listener_limit"
   | "stale_url"
   | "auth_required"
+  | "recording_unavailable"
   | "unknown";
 
 export type PlaybackError = {
@@ -22,6 +23,7 @@ const MESSAGES: Record<PlaybackErrorKind, string> = {
   listener_limit: "This station has reached its listener limit.",
   stale_url: "This station link may have changed.",
   auth_required: "This station requires a login or subscription.",
+  recording_unavailable: "This recording is unavailable.",
   unknown: "This station couldn't be played.",
 };
 
@@ -67,6 +69,15 @@ export function classifyPlaybackError(reason: unknown, online: boolean): Playbac
   const detail = messageOf(reason).trim();
   const kind = kindOf(detail, online);
   return { kind, message: MESSAGES[kind], detail: detail || null };
+}
+
+/** A saved recording whose file is missing or won't decode. */
+export function recordingUnavailableError(reason: unknown): PlaybackError {
+  return {
+    kind: "recording_unavailable",
+    message: MESSAGES.recording_unavailable,
+    detail: messageOf(reason).trim() || null,
+  };
 }
 
 /** Kinds where trying again won't help until something outside the app changes. */
