@@ -3,7 +3,7 @@ import type { AudioPlayer, AudioStatus } from "expo-audio";
 import { create } from "zustand";
 
 import { getPlayableStreamUrl } from "@/lib/api/playlist";
-import { sendStationClick } from "@/lib/api/radio-browser";
+import { getStationByUuid, sendStationClick } from "@/lib/api/radio-browser";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { backoffDelay } from "@/lib/playback/backoff";
 import {
@@ -123,6 +123,15 @@ const livePlayers = new Set<AudioPlayer>();
 
 /** Bumped on every connection attempt; a call whose token is stale must abort. */
 let playToken = 0;
+
+/**
+ * Set when the loaded station came out of storage rather than a fresh
+ * directory result. Its stream URL may have changed since it was saved, so
+ * the first Play looks it up again before connecting.
+ */
+let needsRevalidation = false;
+
+const REVALIDATE_TIMEOUT_MS = 4000;
 
 /**
  * Whether the listener currently intends audio to be flowing. This is what
@@ -509,7 +518,10 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       // hydration, and losing a race with a real Play would be silent.
       if (get().station) return;
       const last = getJson<Station>(LAST_STATION_KEY);
-      if (last?.stationuuid && last.url) set({ station: last, status: "stopped" });
+      if (last?.stationuuid && last.url) {
+        needsRevalidation = true;
+        set({ station: last, status: "stopped" });
+      }
     },
 
     play: async (station: Station) => {
@@ -523,6 +535,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       wantsToPlay = true;
       attempt = 0;
       hasPlayed = false;
+      needsRevalidation = false;
       set({ station, recording: null, position: 0 });
 
       // Recorded per Play press, not per connection, so automatic reconnects
@@ -598,6 +611,27 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
       wantsToPlay = true;
       attempt = 0;
+
+      if (needsRevalidation && !get().recording) {
+        needsRevalidation = false;
+
+        // Claims the token so Pause or Stop during the lookup cancels it.
+        const token = ++playToken;
+        set({ status: "connecting", pauseReason: null, error: null });
+
+        // Best effort and time-boxed: if the directory is slow or down, the
+        // saved copy is still the best guess and playback goes ahead with it.
+        const fresh = await Promise.race([
+          getStationByUuid(station.stationuuid).catch(() => null),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), REVALIDATE_TIMEOUT_MS)),
+        ]);
+        if (token !== playToken) return;
+
+        if (fresh) {
+          set({ station: fresh });
+          setJson(LAST_STATION_KEY, fresh);
+        }
+      }
 
       // Without a live player there is nothing to un-pause — reconnect from
       // scratch. The same goes for one that errored: the native object may
