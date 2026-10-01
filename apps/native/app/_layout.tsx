@@ -12,8 +12,10 @@ import { useFavorites } from "@/stores/favorites";
 import { startNowPlayingService } from "@/stores/now-playing";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { releaseAllPlayers, usePlayer } from "@/stores/player";
+import { useRecentSearches } from "@/stores/recent-searches";
 import { useRecents } from "@/stores/recents";
 import { useRecordings } from "@/stores/recordings";
+import { useSettings } from "@/stores/settings";
 import { startSleepTimerService } from "@/stores/sleep-timer";
 
 export const unstable_settings = {
@@ -37,6 +39,8 @@ export default function Layout() {
     useRecents.getState().restore();
     useFavorites.getState().restore();
     useRecordings.getState().restore();
+    useRecentSearches.getState().restore();
+    useSettings.getState().restore();
 
     void useNetwork.getState().check();
     const unsubNetwork = startNetworkListener();
