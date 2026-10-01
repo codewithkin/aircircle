@@ -18,9 +18,11 @@ export function useAsync<T>(key: string | null, load: () => Promise<T>) {
   const [state, setState] = useState<AsyncState<T>>({ data: null, loading: key !== null, error: false });
   const [attempt, setAttempt] = useState(0);
 
-  // Always the latest loader, without making it a dependency of the effect.
+  // Always the latest loader, without making it a dependency of the load effect.
   const loadRef = useRef(load);
-  loadRef.current = load;
+  useEffect(() => {
+    loadRef.current = load;
+  });
 
   useEffect(() => {
     if (key === null) {
