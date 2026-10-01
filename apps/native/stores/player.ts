@@ -137,6 +137,10 @@ type PlayerActions = {
   pause: () => void;
   resume: () => Promise<void>;
   toggle: () => Promise<void>;
+  /** Releases playback but keeps the station loaded so it can be resumed. */
+  stop: () => void;
+  /** Stops and unloads the station — the Mini Player goes away with it. */
+  dismiss: () => void;
 };
 
 export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
@@ -304,6 +308,18 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       const { status } = get();
       if (status === "playing" || status === "connecting" || status === "buffering") get().pause();
       else await get().resume();
+    },
+
+    stop: () => {
+      // Also invalidates any in-flight connect() so it can't resurrect audio.
+      releaseAllPlayers();
+      if (!get().station) return;
+      set({ status: "stopped", pauseReason: null, error: null });
+    },
+
+    dismiss: () => {
+      releaseAllPlayers();
+      set({ station: null, status: "idle", pauseReason: null, error: null });
     },
   };
 });
