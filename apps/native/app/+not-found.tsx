@@ -1,27 +1,30 @@
-import { Link, Stack } from "expo-router";
-import { Button, Surface } from "heroui-native";
-import { Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { View } from "react-native";
 
-import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Rise } from "@/components/ui/rise";
+import { Screen } from "@/components/ui/screen";
+import { Txt } from "@/components/ui/txt";
+import { GUTTER, colors } from "@/theme/tokens";
 
 export default function NotFoundScreen() {
+  const router = useRouter();
+
   return (
-    <>
-      <Stack.Screen options={{ title: "Not Found" }} />
-      <Container>
-        <View className="flex-1 justify-center items-center p-4">
-          <Surface variant="secondary" className="items-center p-6 max-w-sm rounded-lg">
-            <Text className="text-4xl mb-3">🤔</Text>
-            <Text className="text-foreground font-medium text-lg mb-1">Page Not Found</Text>
-            <Text className="text-muted text-sm text-center mb-4">
-              The page you're looking for doesn't exist.
-            </Text>
-            <Link href="/" asChild>
-              <Button size="sm">Go Home</Button>
-            </Link>
-          </Surface>
-        </View>
-      </Container>
-    </>
+    <Screen>
+      <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: GUTTER }}>
+        <Rise>
+          <Txt variant="displaySm">This page isn’t here.</Txt>
+        </Rise>
+        <Rise index={1}>
+          <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10 }}>
+            The link may be old, or the screen may have moved.
+          </Txt>
+        </Rise>
+        <Rise index={2} style={{ marginTop: 22, alignSelf: "flex-start" }}>
+          <Button label="Go to Home" height={52} onPress={() => router.replace("/")} />
+        </Rise>
+      </View>
+    </Screen>
   );
 }
