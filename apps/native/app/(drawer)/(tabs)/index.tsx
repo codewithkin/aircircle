@@ -3,22 +3,26 @@ import { Pressable, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { getTopStations } from "@/lib/api/radio-browser";
+import { canRecord } from "@/lib/recording/eligibility";
+import { RECORDING_FAILURE_MESSAGES } from "@/lib/recording/types";
 import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
+import { totalRecordingBytes, useRecordings } from "@/stores/recordings";
 import { useSleepTimer } from "@/stores/sleep-timer";
 
 /**
  * Temporary harness for exercising the player until the real screens are
  * designed. Not styled, not final — replace with Home. Long-press a station
- * to favorite it.
+ * to favorite it, long-press a recording to delete it.
  */
 export default function Home() {
   const [stations, setStations] = useState<Station[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const { station, status, pauseReason, error, retryAttempt } = usePlayer();
-  const { play, toggle, stop, dismiss, retry } = usePlayer();
+  const { station, recording, position, status, pauseReason, error, retryAttempt } = usePlayer();
+  const { play, playRecording, seekTo, toggle, stop, dismiss, retry } = usePlayer();
+  const recordings = useRecordings();
   const timer = useSleepTimer();
   const favorites = useFavorites();
 
@@ -33,7 +37,8 @@ export default function Home() {
       <View className="gap-2 pt-12">
         <Text className="text-foreground text-xl font-semibold">{station?.name ?? "No station"}</Text>
         <Text className="text-foreground">
-          {status}
+          {recording ? "RECORDED" : "LIVE"} · {status}
+          {recording ? ` · ${position}s` : ""}
           {pauseReason ? ` (${pauseReason})` : ""}
           {retryAttempt ? ` — attempt ${retryAttempt}` : ""}
         </Text>
@@ -63,6 +68,46 @@ export default function Home() {
           <Action label="Timer 15 min" onPress={() => timer.start(15)} />
           <Action label="Cancel timer" onPress={timer.cancel} />
         </View>
+      </View>
+
+      <View className="gap-2 pb-4">
+        <Text className="text-foreground">
+          {recordings.active
+            ? `Recording ${recordings.active.station.name}`
+            : recordings.lastSaved
+              ? "Saved for offline listening."
+              : recordings.failure
+                ? RECORDING_FAILURE_MESSAGES[recordings.failure]
+                : "Not recording"}
+        </Text>
+        <View className="flex-row gap-4">
+          {station && !recording && canRecord(station) ? (
+            <Action
+              label={recordings.active ? "Stop recording" : "Record"}
+              onPress={() => (recordings.active ? recordings.stop() : recordings.start(station))}
+            />
+          ) : null}
+          {recording ? <Action label="+30s" onPress={() => seekTo(position + 30)} /> : null}
+        </View>
+
+        <Text className="text-muted">
+          {recordings.recordings.length} saved ·{" "}
+          {(totalRecordingBytes(recordings.recordings) / 1_000_000).toFixed(1)} MB
+        </Text>
+        {recordings.recordings.map((r) => (
+          <Pressable
+            key={r.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Play recording of ${r.stationName}`}
+            onPress={() => playRecording(r)}
+            onLongPress={() => recordings.remove(r.id)}
+            className="py-2"
+          >
+            <Text className="text-foreground">
+              {r.stationName} · {Math.round(r.durationMs / 1000)}s
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {loadError ? <Text className="text-danger">{loadError}</Text> : null}
