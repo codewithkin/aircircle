@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "aircircle",
+    "name": "Aircircle",
     "slug": "aircircle",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.aircircle",
+      "bundleIdentifier": "com.codewithkin.aircircle",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -27,7 +27,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.aircircle"
+      "package": "com.codewithkin.aircircle"
     },
     "web": {
       "bundler": "metro",
