@@ -65,7 +65,13 @@
           }
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Aircircle uses your approximate location to find radio stations near you."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
