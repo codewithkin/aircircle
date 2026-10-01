@@ -72,7 +72,6 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
     if (active === index) {
       return {
         zIndex: 2,
-        boxShadow: shadows.lifted,
         transform: [{ translateY: dragY.value }, { rotate: "-1.5deg" }, { scale: 1.02 }],
       };
     }
@@ -87,7 +86,6 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
 
     return {
       zIndex: 0,
-      boxShadow: shadows.hairline,
       transform: [
         { translateY: active >= 0 ? withSpring(shift, SPRING) : 0 },
         { rotate: "0deg" },
@@ -96,6 +94,11 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
     };
   });
 
+  // The deeper shadow fades in as the row lifts, rather than switching on.
+  const liftStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(activeIndex.value === index ? 1 : 0, { duration: 140 }),
+  }));
+
   return (
     <Animated.View
       style={[
@@ -103,6 +106,7 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
           height: ROW_HEIGHT,
           borderRadius: 20,
           backgroundColor: colors.card,
+          boxShadow: shadows.hairline,
           flexDirection: "row",
           alignItems: "center",
           gap: 12,
@@ -112,6 +116,17 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
         style,
       ]}
     >
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          { position: "absolute", inset: 0, borderRadius: 20, boxShadow: shadows.lifted },
+          liftStyle,
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={{ position: "absolute", inset: 0, borderRadius: 20, backgroundColor: colors.card }}
+      />
       <PressableScale
         onPress={() => onRemove(station)}
         pressedScale={0.85}
