@@ -110,6 +110,11 @@ async function ensureDirectory(): Promise<void> {
   }
 }
 
+/** Free space on the device, in bytes. */
+export function freeDiskBytes(): Promise<number> {
+  return FileSystem.getFreeDiskStorageAsync();
+}
+
 /** Whether there is still room to keep writing a recording that is under way. */
 export async function hasSpaceToContinue(): Promise<boolean> {
   return (await FileSystem.getFreeDiskStorageAsync()) >= MIN_FREE_BYTES_TO_CONTINUE;
