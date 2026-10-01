@@ -1,0 +1,3 @@
+{
+  "extends": "@aircircle/config/tsconfig.base.json"
+}
