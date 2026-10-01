@@ -1,4 +1,4 @@
-import type { TextStyle, ViewStyle } from "react-native";
+import type { TextStyle } from "react-native";
 
 /**
  * Soft Air design tokens, for anything that can't take a class name:
@@ -117,40 +117,22 @@ export const type = {
 export type TypeVariant = keyof typeof type;
 
 /**
- * Elevation. The designs use soft, wide, downward shadows that iOS can draw
- * exactly; Android only has `elevation`, so each level carries both.
+ * Elevation, as CSS box shadows — the designs' own values. React Native draws
+ * these natively on both platforms, so there is no separate Android fallback.
  */
 export const shadows = {
   /** Barely there — small white controls on the canvas. */
-  hairline: {
-    shadowColor: colors.ink,
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
+  hairline: "0 1px 2px rgba(16,17,20,0.06)",
   /** White cards resting on the canvas. */
-  card: {
-    shadowColor: colors.ink,
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-  },
-  /** Floating surfaces: the mini player, sheets. */
-  floating: {
-    shadowColor: colors.ink,
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 8,
-  },
+  card: "0 1px 2px rgba(16,17,20,0.06), 0 8px 24px -12px rgba(16,17,20,0.12)",
+  /** Floating surfaces: the mini player, menus. */
+  floating: "0 1px 2px rgba(16,17,20,0.06), 0 16px 32px -16px rgba(16,17,20,0.2)",
+  /** Something lifted off the page: a dragged row, a long-pressed tile. */
+  lifted: "0 24px 40px -16px rgba(16,17,20,0.35)",
   /** The blue glow under the search field. */
-  signal: {
-    shadowColor: "#28468C",
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 6,
-  },
-} as const satisfies Record<string, ViewStyle>;
+  signal: "0 14px 30px -16px rgba(40,70,140,0.35)",
+  /** The glow under the large station artwork. */
+  art: "0 36px 64px -30px rgba(27,138,189,0.55)",
+  /** A small white control sitting on artwork. */
+  onArt: "0 6px 14px -6px rgba(16,17,20,0.4)",
+} as const;
