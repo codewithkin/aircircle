@@ -3,6 +3,7 @@ import type { AudioPlayer, AudioStatus } from "expo-audio";
 import { create } from "zustand";
 
 import { getPlayableStreamUrl } from "@/lib/api/playlist";
+import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { classifyPlaybackError } from "@/lib/playback/errors";
 import type { PlaybackError } from "@/lib/playback/errors";
 import type { Station } from "@/lib/types";
@@ -60,6 +61,9 @@ export type PauseReason = "user" | "external";
 let player: AudioPlayer | null = null;
 let statusSub: { remove: () => void } | null = null;
 let stallTimer: ReturnType<typeof setTimeout> | null = null;
+let lockScreenTimer: ReturnType<typeof setTimeout> | null = null;
+
+const LOCK_SCREEN_DELAY_MS = 400;
 
 /**
  * How long a stream gets to actually start producing audio before it's
@@ -87,11 +91,16 @@ let wantsToPlay = false;
 
 function hardRelease(target: AudioPlayer) {
   livePlayers.delete(target);
-  // Order matters: silence, then free the object.
+  // Order matters: silence, then detach lock screen, then free the object.
   try {
     target.pause();
   } catch {
     /* already gone */
+  }
+  try {
+    target.setActiveForLockScreen(false);
+  } catch {
+    /* not the active player */
   }
   try {
     target.remove();
@@ -114,6 +123,10 @@ function clearStall() {
 
 function teardown() {
   clearStall();
+  if (lockScreenTimer) {
+    clearTimeout(lockScreenTimer);
+    lockScreenTimer = null;
+  }
   if (statusSub) {
     try {
       statusSub.remove();
@@ -253,6 +266,28 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
       next.play();
       armStall();
+
+      // Binds this player to the lock screen, notification and headset
+      // controls. On Android this is also what keeps background playback
+      // alive past a few minutes.
+      lockScreenTimer = setTimeout(() => {
+        if (token !== playToken) return;
+        try {
+          next.setActiveForLockScreen(
+            true,
+            {
+              title: station.name,
+              artist: "AirCircle",
+              albumTitle: station.country || "Live radio",
+              artworkUrl: LOCK_SCREEN_ARTWORK,
+            },
+            // Live radio: no scrub bar, no skip buttons.
+            { isLiveStream: true, showSeekForward: false, showSeekBackward: false },
+          );
+        } catch {
+          /* lock screen metadata is cosmetic */
+        }
+      }, LOCK_SCREEN_DELAY_MS);
     } catch (e) {
       if (token !== playToken) return;
       fail(e);
