@@ -21,6 +21,11 @@ type Onboarding = {
   places: string[];
   /** Whether the first-listen celebration has already been shown. */
   hasCelebratedFirstListen: boolean;
+  /**
+   * Progress through the three first-listen tips: the number already seen.
+   * 3 (or more) means the sequence is finished or was skipped.
+   */
+  tipsSeen: number;
 };
 
 const DEFAULTS: Onboarding = {
@@ -29,6 +34,7 @@ const DEFAULTS: Onboarding = {
   genres: [],
   places: [],
   hasCelebratedFirstListen: false,
+  tipsSeen: 0,
 };
 
 type OnboardingActions = {
@@ -38,6 +44,10 @@ type OnboardingActions = {
   /** Ends onboarding — also what Skip calls, with whatever was chosen so far. */
   complete: () => void;
   markFirstListenCelebrated: () => void;
+  /** Moves on to the next tip. */
+  advanceTips: () => void;
+  /** Ends the tip sequence for good. */
+  skipTips: () => void;
   reset: () => void;
 };
 
@@ -52,13 +62,14 @@ const saved = getJson<Partial<Onboarding>>(ONBOARDING_KEY);
 export const useOnboarding = create<Onboarding & OnboardingActions>((set, get) => {
   const update = (changes: Partial<Onboarding>) => {
     set(changes);
-    const { hasOnboarded, intents, genres, places, hasCelebratedFirstListen } = get();
+    const { hasOnboarded, intents, genres, places, hasCelebratedFirstListen, tipsSeen } = get();
     setJson<Onboarding>(ONBOARDING_KEY, {
       hasOnboarded,
       intents,
       genres,
       places,
       hasCelebratedFirstListen,
+      tipsSeen,
     });
   };
 
@@ -71,6 +82,8 @@ export const useOnboarding = create<Onboarding & OnboardingActions>((set, get) =
     togglePlace: (place) => update({ places: toggled(get().places, place) }),
     complete: () => update({ hasOnboarded: true }),
     markFirstListenCelebrated: () => update({ hasCelebratedFirstListen: true }),
+    advanceTips: () => update({ tipsSeen: get().tipsSeen + 1 }),
+    skipTips: () => update({ tipsSeen: 3 }),
     reset: () => update(DEFAULTS),
   };
 });
