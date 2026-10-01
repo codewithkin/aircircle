@@ -112,6 +112,7 @@ export default function Layout() {
           <Stack.Screen name="browse" />
           <Stack.Screen name="nearby" options={{ animation: "slide_from_bottom" }} />
           <Stack.Screen name="local-data" />
+          <Stack.Screen name="recordings" />
         </Stack>
 
         <QuickActions />
