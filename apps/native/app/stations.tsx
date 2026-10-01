@@ -90,7 +90,7 @@ export default function Stations() {
           background={colors.card}
           shadow
           accessibilityLabel="Search stations"
-          onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+          onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
         />
       </Rise>
 
@@ -193,7 +193,7 @@ export default function Stations() {
           title="Search by name"
           subtitle="Find a station you already know"
           divider={false}
-          onPress={() => router.navigate({ pathname: "/search", params: { focus: "1" } })}
+          onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
         />
       </View>
     </Rise>
@@ -214,7 +214,10 @@ export default function Stations() {
         ListHeaderComponent={header}
         ListHeaderComponentStyle={{ marginBottom: -10 }}
         ListEmptyComponent={empty}
-        renderItem={({ item, index }) => <StationListCard station={item} index={index + 3} />}
+        // Only the first screenful staggers in; rows met while scrolling appear at once.
+        renderItem={({ item, index }) => (
+          <StationListCard station={item} index={index < 6 ? index + 3 : 0} />
+        )}
         // Rows are remounted as filters change; keep the first screenful cheap.
         initialNumToRender={8}
         windowSize={7}
