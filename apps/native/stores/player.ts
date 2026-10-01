@@ -192,6 +192,24 @@ function teardown() {
 }
 
 /**
+ * Puts the station-supplied title on the lock screen and notification, or
+ * takes it back off with null. Only has an effect while a player is bound to
+ * the lock screen.
+ */
+export function updateLockScreenNowPlaying(station: Station, nowPlaying: string | null) {
+  try {
+    player?.updateLockScreenMetadata({
+      title: station.name,
+      artist: nowPlaying ?? "Aircircle",
+      albumTitle: station.country || "Live radio",
+      artworkUrl: LOCK_SCREEN_ARTWORK,
+    });
+  } catch {
+    /* lock screen metadata is cosmetic */
+  }
+}
+
+/**
  * Nuclear option — releases the tracked player and any leaked ones. Called on
  * root-layout teardown so a Fast Refresh or JS reload can't strand audio.
  */
