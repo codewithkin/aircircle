@@ -31,6 +31,17 @@ export type PlaybackStatus =
   | "stopped"
   | "error";
 
+/**
+ * Why a paused player is paused.
+ *
+ *   user      Pause was pressed in the app.
+ *   external  The platform paused it: a call or other interruption, headphones
+ *             or Bluetooth disconnecting, or Pause on the lock screen/headset.
+ *             expo-audio reports all of these the same way, so they share one
+ *             reason.
+ */
+export type PauseReason = "user" | "external";
+
 /* ------------------------------------------------------------------------ *
  * Single-player invariant
  *
@@ -115,6 +126,7 @@ export function releaseAllPlayers() {
 type PlayerState = {
   station: Station | null;
   status: PlaybackStatus;
+  pauseReason: PauseReason | null;
   error: PlaybackError | null;
   isReady: boolean;
 };
@@ -122,6 +134,9 @@ type PlayerState = {
 type PlayerActions = {
   setup: () => Promise<void>;
   play: (station: Station) => Promise<void>;
+  pause: () => void;
+  resume: () => Promise<void>;
+  toggle: () => Promise<void>;
 };
 
 export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
@@ -144,7 +159,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     if (status.playing) {
       wantsToPlay = true;
-      if (get().status !== "playing") set({ status: "playing", error: null });
+      if (get().status !== "playing") set({ status: "playing", pauseReason: null, error: null });
       return;
     }
 
@@ -156,8 +171,18 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     if (!wantsToPlay) return;
 
+    if (status.isLoaded && !status.isBuffering) {
+      // Loaded, not buffering, not playing, and we never asked for that: the
+      // platform paused it. Stay paused until the listener (or the platform
+      // itself) starts it again — never resume behind their back.
+      if (get().status === "playing") {
+        wantsToPlay = false;
+        set({ status: "paused", pauseReason: "external" });
+      }
+      return;
+    }
+
     const next = status.isLoaded ? "buffering" : "connecting";
-    if (status.isLoaded && !status.isBuffering) return;
     if (get().status !== next) set({ status: next });
   };
 
@@ -172,7 +197,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     // Synchronous, before any await — this is what stops stacking.
     teardown();
 
-    set({ status: "connecting", error: null });
+    set({ status: "connecting", pauseReason: null, error: null });
 
     try {
       const streamUrl = await getPlayableStreamUrl(station);
@@ -200,6 +225,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
   return {
     station: null,
     status: "idle",
+    pauseReason: null,
     error: null,
     isReady: false,
 
@@ -228,6 +254,56 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       wantsToPlay = true;
       set({ station });
       await connect();
+    },
+
+    pause: () => {
+      const { station, status } = get();
+      if (!station || status === "idle" || status === "stopped" || status === "error") return;
+
+      wantsToPlay = false;
+
+      if (status === "playing" || status === "buffering") {
+        try {
+          player?.pause();
+        } catch {
+          /* noop */
+        }
+      } else {
+        // Still connecting: there is no audio to hold, so drop the attempt
+        // rather than let it start playing after Pause was pressed.
+        playToken++;
+        teardown();
+      }
+
+      set({ status: "paused", pauseReason: "user" });
+    },
+
+    resume: async () => {
+      const { station, status } = get();
+      if (!station || status === "playing") return;
+
+      wantsToPlay = true;
+
+      // Without a live player there is nothing to un-pause — reconnect from
+      // scratch. The same goes for one that errored: the native object may
+      // still exist but its connection is dead.
+      if (!player || status !== "paused") {
+        await connect();
+        return;
+      }
+
+      set({ status: "buffering", pauseReason: null, error: null });
+      try {
+        player.play();
+      } catch {
+        await connect();
+      }
+    },
+
+    toggle: async () => {
+      const { status } = get();
+      if (status === "playing" || status === "connecting" || status === "buffering") get().pause();
+      else await get().resume();
     },
   };
 });
