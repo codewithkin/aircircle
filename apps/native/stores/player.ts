@@ -90,6 +90,13 @@ const RETRY_BUDGET_BEFORE_AUDIO = 2;
 const STABLE_AFTER_MS = 10000;
 
 /**
+ * Set when the connection dropped mid-listen. Retrying on a timer while the
+ * device is offline only burns the budget, so the reconnect waits for the
+ * network to come back instead.
+ */
+let waitingForNetwork = false;
+
+/**
  * How long a stream gets to actually start producing audio before it's
  * treated as failed. Without this, a station that connects but never reaches
  * `playing: true` — throttled, stuck buffering, a format the device silently
@@ -181,6 +188,7 @@ export function releaseAllPlayers() {
   playToken++;
   wantsToPlay = false;
   attempt = 0;
+  waitingForNetwork = false;
   teardown();
   for (const stray of Array.from(livePlayers)) hardRelease(stray);
   livePlayers.clear();
@@ -210,6 +218,9 @@ type PlayerActions = {
   dismiss: () => void;
   /** "Retry now": reconnects immediately with a fresh retry budget. */
   retry: () => Promise<void>;
+  /** Called by the network recovery service; not for screens. */
+  handleNetworkLost: () => void;
+  handleNetworkRestored: () => void;
 };
 
 export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
@@ -219,6 +230,15 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     const error = classifyPlaybackError(reason, useNetwork.getState().isConnected);
     const budget = hasPlayed ? RETRY_BUDGET_AFTER_AUDIO : RETRY_BUDGET_BEFORE_AUDIO;
+
+    // Lost the connection while listening: hold the station and pick it back
+    // up when the network returns. Pressing Play while already offline is not
+    // this case — that fails outright so the listener knows why.
+    if (error.kind === "offline" && hasPlayed) {
+      waitingForNetwork = true;
+      set({ status: "reconnecting", error, retryAttempt: 0, retryAt: null });
+      return;
+    }
 
     if (isRetryable(error.kind) && attempt < budget) {
       const delay = backoffDelay(attempt);
@@ -317,9 +337,15 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     // Synchronous, before any await — this is what stops stacking.
     teardown();
+    waitingForNetwork = false;
 
     if (attempt > 0) set({ status: "reconnecting", pauseReason: null, retryAt: null });
     else set({ status: "connecting", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
+
+    if (!useNetwork.getState().isConnected) {
+      fail("No network connection");
+      return;
+    }
 
     try {
       const streamUrl = await getPlayableStreamUrl(station);
@@ -410,6 +436,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       if (!station || status === "idle" || status === "stopped" || status === "error") return;
 
       wantsToPlay = false;
+      waitingForNetwork = false;
       // An intentional pause is a valid reason for audio not to be flowing.
       clearStall();
 
@@ -488,6 +515,20 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       wantsToPlay = true;
       attempt = 0;
       await connect();
+    },
+
+    handleNetworkLost: () => {
+      if (!wantsToPlay || waitingForNetwork) return;
+      playToken++;
+      fail("Network connection lost");
+    },
+
+    handleNetworkRestored: () => {
+      // Only picks up a session the network itself interrupted. If the
+      // listener paused or stopped, connectivity returning must not start
+      // audio behind their back.
+      if (!waitingForNetwork || !wantsToPlay) return;
+      void connect();
     },
   };
 });
