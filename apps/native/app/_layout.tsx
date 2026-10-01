@@ -7,6 +7,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
+import { useFavorites } from "@/stores/favorites";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { releaseAllPlayers, usePlayer } from "@/stores/player";
 import { useRecents } from "@/stores/recents";
@@ -31,6 +32,7 @@ export default function Layout() {
     void usePlayer.getState().setup();
     usePlayer.getState().restore();
     useRecents.getState().restore();
+    useFavorites.getState().restore();
 
     void useNetwork.getState().check();
     const unsubNetwork = startNetworkListener();
