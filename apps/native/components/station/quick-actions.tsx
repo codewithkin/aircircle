@@ -108,9 +108,15 @@ export function QuickActions() {
   const status = usePlayer((s) => s.status);
   const recording = usePlayer((s) => s.recording);
 
+  // The report sheet lives here too, always in the same place in the tree, so
+  // it can open as this menu closes without being remounted mid-animation.
   if (!mounted || !shown) {
-    // The report sheet lives here too so it can open as this menu closes.
-    return <ReportSheet />;
+    return (
+      <>
+        {null}
+        <ReportSheet />
+      </>
+    );
   }
 
   const { station, frame } = shown;
