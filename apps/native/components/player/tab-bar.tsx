@@ -44,7 +44,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
       transition={timing.slow}
       style={{ paddingBottom: insets.bottom }}
     >
-      {dark ? null : <MiniPlayer />}
+      <MiniPlayer />
 
       <View
         accessibilityRole="tablist"
