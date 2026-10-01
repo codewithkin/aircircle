@@ -386,7 +386,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
             true,
             {
               title: station.name,
-              artist: "AirCircle",
+              artist: "Aircircle",
               albumTitle: station.country || "Live radio",
               artworkUrl: LOCK_SCREEN_ARTWORK,
             },

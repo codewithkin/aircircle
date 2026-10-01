@@ -63,7 +63,7 @@ export async function resolvePlaylistUrl(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "AirCircle/1.0.0" },
+      headers: { "User-Agent": "Aircircle/1.0.0" },
     });
     if (!response.ok) return url;
 

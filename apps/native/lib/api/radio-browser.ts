@@ -6,7 +6,7 @@ let apiInstance: RadioBrowserApi | null = null;
 
 function getApi(): RadioBrowserApi {
   if (!apiInstance) {
-    apiInstance = new RadioBrowserApi("AirCircle/1.0", true);
+    apiInstance = new RadioBrowserApi("Aircircle/1.0", true);
   }
   return apiInstance;
 }
