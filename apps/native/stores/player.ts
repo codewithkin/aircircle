@@ -6,8 +6,14 @@ import { getPlayableStreamUrl } from "@/lib/api/playlist";
 import { sendStationClick } from "@/lib/api/radio-browser";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { backoffDelay } from "@/lib/playback/backoff";
-import { classifyPlaybackError, isRetryable } from "@/lib/playback/errors";
+import {
+  classifyPlaybackError,
+  isRetryable,
+  recordingUnavailableError,
+} from "@/lib/playback/errors";
 import type { PlaybackError } from "@/lib/playback/errors";
+import { recordingFileExists, recordingUri } from "@/lib/recording/recorder";
+import type { Recording } from "@/lib/recording/types";
 import { getJson, remove, setJson } from "@/lib/storage";
 import type { Station } from "@/lib/types";
 import { useNetwork } from "@/stores/network";
@@ -202,6 +208,14 @@ export function releaseAllPlayers() {
 
 type PlayerState = {
   station: Station | null;
+  /**
+   * Set when a saved recording is loaded instead of a live stream. Surfaces
+   * read this to label playback RECORDED rather than LIVE and to hide
+   * live-only actions.
+   */
+  recording: Recording | null;
+  /** Seconds into the saved recording. Always 0 for live radio. */
+  position: number;
   status: PlaybackStatus;
   pauseReason: PauseReason | null;
   error: PlaybackError | null;
@@ -220,6 +234,10 @@ type PlayerActions = {
    */
   restore: () => void;
   play: (station: Station) => Promise<void>;
+  /** Plays a saved recording through the same single player. Works offline. */
+  playRecording: (recording: Recording) => Promise<void>;
+  /** Saved recordings only — live radio has nothing to seek. */
+  seekTo: (seconds: number) => void;
   pause: () => void;
   resume: () => Promise<void>;
   toggle: () => Promise<void>;
@@ -238,6 +256,19 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
   const fail = (reason: unknown) => {
     teardown();
     if (!wantsToPlay) return;
+
+    // A local file that won't play is a broken file, not a station having a
+    // bad day: nothing to reconnect to, so no retry.
+    if (get().recording) {
+      wantsToPlay = false;
+      set({
+        status: "error",
+        error: recordingUnavailableError(reason),
+        retryAttempt: 0,
+        retryAt: null,
+      });
+      return;
+    }
 
     const error = classifyPlaybackError(reason, useNetwork.getState().isConnected);
     const budget = hasPlayed ? RETRY_BUDGET_AFTER_AUDIO : RETRY_BUDGET_BEFORE_AUDIO;
@@ -299,6 +330,17 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
           }, STABLE_AFTER_MS);
         }
       }
+      if (get().recording) {
+        const position = Math.floor(status.currentTime);
+        if (position !== get().position) set({ position });
+      }
+      return;
+    }
+
+    // A saved recording reaching its end is just the end.
+    if (status.didJustFinish && get().recording) {
+      releaseAllPlayers();
+      set({ status: "stopped", pauseReason: null, error: null, position: 0 });
       return;
     }
 
@@ -329,7 +371,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
     // Dropping out of playing into buffering gets the same deadline as a
     // first connect — a stream can stall mid-broadcast without ever erroring.
-    if (get().status === "playing") armStall();
+    if (get().status === "playing" && !get().recording) armStall();
 
     // Mid-reconnect the listener is told "Reconnecting" until audio returns,
     // not walked back through Connecting and Buffering.
@@ -352,13 +394,27 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     if (attempt > 0) set({ status: "reconnecting", pauseReason: null, retryAt: null });
     else set({ status: "connecting", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
 
-    if (!useNetwork.getState().isConnected) {
+    const recording = get().recording;
+
+    // Saved recordings play from disk — no network needed.
+    if (!recording && !useNetwork.getState().isConnected) {
       fail("No network connection");
       return;
     }
 
     try {
-      const streamUrl = await getPlayableStreamUrl(station);
+      let streamUrl: string;
+      if (recording) {
+        const exists = await recordingFileExists(recording.fileName);
+        if (token !== playToken) return;
+        if (!exists) {
+          fail("Recording file is missing");
+          return;
+        }
+        streamUrl = recordingUri(recording.fileName);
+      } else {
+        streamUrl = await getPlayableStreamUrl(station);
+      }
 
       // A newer attempt started while we were resolving the URL — bail
       // before ever touching the native player.
@@ -374,7 +430,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       });
 
       next.play();
-      armStall();
+      if (!recording) armStall();
 
       // Binds this player to the lock screen, notification and headset
       // controls. On Android this is also what keeps background playback
@@ -387,11 +443,13 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
             {
               title: station.name,
               artist: "Aircircle",
-              albumTitle: station.country || "Live radio",
+              albumTitle: recording ? "Saved recording" : station.country || "Live radio",
               artworkUrl: LOCK_SCREEN_ARTWORK,
             },
             // Live radio: no scrub bar, no skip buttons.
-            { isLiveStream: true, showSeekForward: false, showSeekBackward: false },
+            recording
+              ? { isLiveStream: false, showSeekForward: true, showSeekBackward: true }
+              : { isLiveStream: true, showSeekForward: false, showSeekBackward: false },
           );
         } catch {
           /* lock screen metadata is cosmetic */
@@ -405,6 +463,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
 
   return {
     station: null,
+    recording: null,
+    position: 0,
     status: "idle",
     pauseReason: null,
     error: null,
@@ -435,17 +495,17 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     },
 
     play: async (station: Station) => {
-      const { station: current, status } = get();
+      const { station: current, status, recording } = get();
 
       // Repeated taps on a station that is already starting or playing must
       // not restart the stream.
       const isActive = status === "connecting" || status === "buffering" || status === "playing";
-      if (isActive && current?.stationuuid === station.stationuuid) return;
+      if (isActive && !recording && current?.stationuuid === station.stationuuid) return;
 
       wantsToPlay = true;
       attempt = 0;
       hasPlayed = false;
-      set({ station });
+      set({ station, recording: null, position: 0 });
 
       // Recorded per Play press, not per connection, so automatic reconnects
       // neither reshuffle Recents nor inflate the station's click count.
@@ -454,6 +514,37 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       sendStationClick(station.stationuuid).catch(() => {});
 
       await connect();
+    },
+
+    playRecording: async (recording: Recording) => {
+      const { recording: current, status } = get();
+      const isActive = status === "connecting" || status === "buffering" || status === "playing";
+      if (isActive && current?.id === recording.id) return;
+
+      wantsToPlay = true;
+      attempt = 0;
+      hasPlayed = false;
+
+      // Deliberately not written to Recents or the last station: a saved file
+      // is not a station the listener tuned to.
+      set({
+        station: {
+          stationuuid: recording.stationUuid,
+          name: recording.stationName,
+          url: recordingUri(recording.fileName),
+        },
+        recording,
+        position: 0,
+      });
+
+      await connect();
+    },
+
+    seekTo: (seconds: number) => {
+      if (!player || !get().recording) return;
+      const position = Math.max(0, seconds);
+      player.seekTo(position).catch(() => {});
+      set({ position: Math.floor(position) });
     },
 
     pause: () => {
@@ -501,7 +592,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       set({ status: "buffering", pauseReason: null, error: null });
       try {
         player.play();
-        armStall();
+        if (!get().recording) armStall();
       } catch {
         await connect();
       }
@@ -522,14 +613,24 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       // Also invalidates any in-flight connect() so it can't resurrect audio.
       releaseAllPlayers();
       if (!get().station) return;
-      set({ status: "stopped", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
+      set({
+        status: "stopped",
+        pauseReason: null,
+        error: null,
+        retryAttempt: 0,
+        retryAt: null,
+        position: 0,
+      });
     },
 
     dismiss: () => {
       releaseAllPlayers();
-      remove(LAST_STATION_KEY);
+      // Dismissing a saved recording must not forget the last live station.
+      if (!get().recording) remove(LAST_STATION_KEY);
       set({
         station: null,
+        recording: null,
+        position: 0,
         status: "idle",
         pauseReason: null,
         error: null,
@@ -546,7 +647,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     },
 
     handleNetworkLost: () => {
-      if (!wantsToPlay || waitingForNetwork) return;
+      if (!wantsToPlay || waitingForNetwork || get().recording) return;
       playToken++;
       fail("Network connection lost");
     },
