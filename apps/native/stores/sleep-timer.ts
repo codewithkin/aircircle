@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 import { usePlayer } from "@/stores/player";
 
-export const SLEEP_TIMER_PRESETS_MIN = [5, 15, 30, 60] as const;
+export const SLEEP_TIMER_PRESETS_MIN = [15, 30, 45, 60, 120] as const;
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -17,6 +17,8 @@ function clearTimer() {
 type SleepTimerState = {
   /** Epoch ms when playback will stop; null when no timer is set. */
   endsAt: number | null;
+  /** The full length of the running countdown, for drawing how much is left. */
+  totalMs: number;
   /** True after the timer stopped playback, until the next Play or timer. */
   didExpire: boolean;
 };
@@ -25,12 +27,15 @@ type SleepTimerActions = {
   /** Starts a countdown, replacing any timer already running. */
   start: (minutes: number) => void;
   cancel: () => void;
+  /** Adds time to the running countdown. Does nothing if no timer is set. */
+  extend: (minutes: number) => void;
   /** Stops playback if the deadline has passed. Safe to call at any time. */
   check: () => void;
 };
 
 export const useSleepTimer = create<SleepTimerState & SleepTimerActions>((set, get) => ({
   endsAt: null,
+  totalMs: 0,
   didExpire: false,
 
   start: (minutes: number) => {
@@ -38,13 +43,24 @@ export const useSleepTimer = create<SleepTimerState & SleepTimerActions>((set, g
 
     clearTimer();
     const durationMs = Math.round(minutes * 60_000);
-    set({ endsAt: Date.now() + durationMs, didExpire: false });
+    set({ endsAt: Date.now() + durationMs, totalMs: durationMs, didExpire: false });
     timer = setTimeout(() => get().check(), durationMs);
+  },
+
+  extend: (minutes: number) => {
+    const { endsAt, totalMs } = get();
+    if (endsAt === null || !Number.isFinite(minutes) || minutes <= 0) return;
+
+    clearTimer();
+    const extraMs = Math.round(minutes * 60_000);
+    const nextEndsAt = endsAt + extraMs;
+    set({ endsAt: nextEndsAt, totalMs: totalMs + extraMs });
+    timer = setTimeout(() => get().check(), Math.max(0, nextEndsAt - Date.now()));
   },
 
   cancel: () => {
     clearTimer();
-    set({ endsAt: null });
+    set({ endsAt: null, totalMs: 0 });
   },
 
   check: () => {
@@ -54,7 +70,7 @@ export const useSleepTimer = create<SleepTimerState & SleepTimerActions>((set, g
     clearTimer();
     // Flagged before stopping so the subscription below, which cancels the
     // timer on any stop, can tell this one apart from the listener's.
-    set({ endsAt: null, didExpire: true });
+    set({ endsAt: null, totalMs: 0, didExpire: true });
     usePlayer.getState().stop();
   },
 }));
