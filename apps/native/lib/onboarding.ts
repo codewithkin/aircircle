@@ -2,6 +2,8 @@ import type { useRouter } from "expo-router";
 
 import { useOnboarding } from "@/stores/onboarding";
 
+type Router = ReturnType<typeof useRouter>;
+
 /**
  * Ends onboarding and, optionally, lands somewhere other than Home.
  *
@@ -9,8 +11,6 @@ import { useOnboarding } from "@/stores/onboarding";
  * any follow-on navigation has to wait a beat for the app's own screens to
  * exist before it can push onto them.
  */
-type Router = ReturnType<typeof useRouter>;
-
 export function finishOnboarding(router: Router, then?: "search" | "nearby"): void {
   useOnboarding.getState().complete();
   if (!then) return;
