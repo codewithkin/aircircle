@@ -1,3 +1,75 @@
 @import "tailwindcss";
 @import "uniwind";
 @import "heroui-native/styles";
+
+/*
+ * Soft Air — the Aircircle design system.
+ *
+ * Light, airy surfaces with one ink colour for text and primary controls.
+ * Colour is reserved for meaning: blue for search and selection, red for live
+ * and failure, amber for reconnecting, green for healthy.
+ *
+ * The same values live in `theme/tokens.ts` for anything that can't take a
+ * class name (gradients, shadows, animated colours). Change both together.
+ */
+@theme {
+  /* Surfaces */
+  --color-canvas: #f5f6f8;
+  --color-card: #ffffff;
+  --color-chip: #e9ebef;
+  --color-hairline: #e3e5ea;
+
+  /* Text */
+  --color-ink: #101114;
+  --color-ink-soft: #6b7080;
+  --color-ink-faint: #8b90a0;
+  --color-on-ink: #ffffff;
+
+  /* Search, selection, focus */
+  --color-signal: #006eb3;
+  --color-signal-deep: #004e95;
+  --color-signal-soft: #ddf2ff;
+  --color-signal-line: #9ecaef;
+
+  /* Live and failure */
+  --color-live: #e64343;
+  --color-alert: #b32228;
+  --color-alert-strong: #d33a3c;
+  --color-alert-soft: #ffe7e4;
+  --color-alert-canvas: #fef4f4;
+
+  /* Reconnecting */
+  --color-amber: #975800;
+  --color-amber-strong: #f2af48;
+  --color-amber-soft: #ffeccd;
+  --color-amber-canvas: #fbf4ea;
+
+  /* Healthy */
+  --color-ok: #1c985a;
+  --color-ok-deep: #095c34;
+  --color-ok-soft: #daf7e3;
+
+  /* Night — sleep timer, offline, lock screen */
+  --color-night: #0e1424;
+  --color-night-offline: #15181f;
+  --color-night-accent: #90cdf1;
+  --color-night-text: #9ba1b0;
+  --color-night-faint: #7d8494;
+
+  /* Type. React Native picks a font file by family name, not by weight, so
+     each weight is its own family. */
+  --font-sans: "InstrumentSans_400Regular";
+  --font-sans-medium: "InstrumentSans_500Medium";
+  --font-sans-semibold: "InstrumentSans_600SemiBold";
+  --font-serif: "InstrumentSerif_400Regular";
+  --font-serif-italic: "InstrumentSerif_400Regular_Italic";
+  --font-mono: "JetBrainsMono_500Medium";
+
+  /* Shape */
+  --radius-chip: 19px;
+  --radius-row: 15px;
+  --radius-card: 22px;
+  --radius-tile: 24px;
+  --radius-hero: 28px;
+  --radius-art: 36px;
+}
