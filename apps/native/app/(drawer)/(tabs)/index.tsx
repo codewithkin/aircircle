@@ -5,8 +5,10 @@ import { Container } from "@/components/container";
 import { getTopStations } from "@/lib/api/radio-browser";
 import { canRecord } from "@/lib/recording/eligibility";
 import { RECORDING_FAILURE_MESSAGES } from "@/lib/recording/types";
+import { shareStation } from "@/lib/share";
 import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
+import { useNowPlaying } from "@/stores/now-playing";
 import { usePlayer } from "@/stores/player";
 import { totalRecordingBytes, useRecordings } from "@/stores/recordings";
 import { useSleepTimer } from "@/stores/sleep-timer";
@@ -23,6 +25,7 @@ export default function Home() {
   const { station, recording, position, status, pauseReason, error, retryAttempt } = usePlayer();
   const { play, playRecording, seekTo, toggle, stop, dismiss, retry } = usePlayer();
   const recordings = useRecordings();
+  const nowPlaying = useNowPlaying((s) => s.title);
   const timer = useSleepTimer();
   const favorites = useFavorites();
 
@@ -42,6 +45,9 @@ export default function Home() {
           {pauseReason ? ` (${pauseReason})` : ""}
           {retryAttempt ? ` — attempt ${retryAttempt}` : ""}
         </Text>
+        {!recording && status === "playing" ? (
+          <Text className="text-muted">{nowPlaying ?? "Now playing information unavailable."}</Text>
+        ) : null}
         {error ? (
           <Text className="text-danger">
             {error.message}
@@ -54,6 +60,7 @@ export default function Home() {
           <Action label="Stop" onPress={stop} />
           <Action label="Retry" onPress={retry} />
           <Action label="Dismiss" onPress={dismiss} />
+          {station ? <Action label="Share" onPress={() => shareStation(station)} /> : null}
         </View>
 
         <Text className="text-foreground">
