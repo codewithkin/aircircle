@@ -243,6 +243,12 @@ type PlayerState = {
   recording: Recording | null;
   /** Seconds into the saved recording. Always 0 for live radio. */
   position: number;
+  /**
+   * Whether this session has produced audio since Play was pressed. Screens
+   * use it to tell a first connection (show the Connecting state) from a
+   * brief re-buffer of something already playing (don't).
+   */
+  hasAudio: boolean;
   status: PlaybackStatus;
   pauseReason: PauseReason | null;
   error: PlaybackError | null;
@@ -325,7 +331,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     wantsToPlay = false;
     attempt = 0;
     hasPlayed = false;
-    set({ status: "error", error, retryAttempt: 0, retryAt: null });
+    set({ status: "error", error, retryAttempt: 0, retryAt: null, hasAudio: false });
   };
 
   /** If audio isn't flowing by the deadline and no error ever fired, fail anyway. */
@@ -349,7 +355,14 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       wantsToPlay = true;
       hasPlayed = true;
       if (get().status !== "playing") {
-        set({ status: "playing", pauseReason: null, error: null, retryAttempt: 0, retryAt: null });
+        set({
+          status: "playing",
+          pauseReason: null,
+          error: null,
+          retryAttempt: 0,
+          retryAt: null,
+          hasAudio: true,
+        });
         if (!stableTimer) {
           stableTimer = setTimeout(() => {
             stableTimer = null;
@@ -492,6 +505,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     station: null,
     recording: null,
     position: 0,
+    hasAudio: false,
     status: "idle",
     pauseReason: null,
     error: null,
@@ -536,7 +550,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       attempt = 0;
       hasPlayed = false;
       needsRevalidation = false;
-      set({ station, recording: null, position: 0 });
+      set({ station, recording: null, position: 0, hasAudio: false });
 
       // Recorded per Play press, not per connection, so automatic reconnects
       // neither reshuffle Recents nor inflate the station's click count.
@@ -566,6 +580,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         },
         recording,
         position: 0,
+        hasAudio: false,
       });
 
       await connect();
@@ -672,6 +687,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         retryAttempt: 0,
         retryAt: null,
         position: 0,
+        hasAudio: false,
       });
     },
 
@@ -683,6 +699,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         station: null,
         recording: null,
         position: 0,
+        hasAudio: false,
         status: "idle",
         pauseReason: null,
         error: null,
