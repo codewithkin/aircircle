@@ -62,7 +62,8 @@ export function MiniPlayer() {
     if (station) setShown(station);
   }, [station]);
 
-  const visible = station !== null;
+  // A stopped station is offered as "Resume" on Home instead of sitting here.
+  const visible = station !== null && status !== "stopped" && status !== "idle";
   const mounted = usePresence(visible, 320);
 
   const dragY = useSharedValue(0);
@@ -78,8 +79,7 @@ export function MiniPlayer() {
   const stop = () => {
     const player = usePlayer.getState();
     const stopped = player.station;
-    const wasRecording = player.recording;
-    player.dismiss();
+    player.stop();
     if (!stopped) return;
 
     useToast.getState().show({
@@ -87,11 +87,7 @@ export function MiniPlayer() {
       icon: "stop",
       actionLabel: "Undo",
       // Undo restarts only because the listener tapped it — never on its own.
-      onAction: () => {
-        const p = usePlayer.getState();
-        if (wasRecording) void p.playRecording(wasRecording);
-        else void p.play(stopped);
-      },
+      onAction: () => void usePlayer.getState().resume(),
     });
   };
 
