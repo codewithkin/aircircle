@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "aircircle",
-  description: "aircircle",
+  title: "Aircircle",
+  description: "Aircircle",
 };
 
 export default function RootLayout({
