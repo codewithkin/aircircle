@@ -10,6 +10,7 @@ import { startNetworkRecovery } from "@/lib/playback/network-recovery";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { releaseAllPlayers, usePlayer } from "@/stores/player";
 import { useRecents } from "@/stores/recents";
+import { startSleepTimerService } from "@/stores/sleep-timer";
 
 export const unstable_settings = {
   initialRouteName: "(drawer)",
@@ -34,10 +35,12 @@ export default function Layout() {
     void useNetwork.getState().check();
     const unsubNetwork = startNetworkListener();
     const unsubRecovery = startNetworkRecovery();
+    const unsubSleepTimer = startSleepTimerService();
 
     return () => {
       unsubNetwork();
       unsubRecovery();
+      unsubSleepTimer();
       releaseAllPlayers();
     };
   }, []);
