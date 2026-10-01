@@ -84,14 +84,28 @@ export async function getStationByUuid(stationuuid: string): Promise<Station | n
 }
 
 /** A browse category with how many stations sit under it. */
-export type BrowseEntry = { name: string; stationCount: number };
+export type BrowseEntry = {
+  name: string;
+  stationCount: number;
+  /** ISO 3166-1 alpha-2, on countries only — what the flag is drawn from. */
+  code?: string;
+};
 
 const BROWSE_QUERY = { order: "stationcount", reverse: true, hideBroken: true } as const;
 
 function mapEntries(results: { name: string; stationcount: number }[]): BrowseEntry[] {
   return results
     .filter((r) => r.name.trim() && r.stationcount > 0)
-    .map((r) => ({ name: r.name, stationCount: r.stationcount }));
+    .map((r) => {
+      // The directory sends the country code alongside the name; the client
+      // library's types just don't mention it.
+      const code = (r as { iso_3166_1?: unknown }).iso_3166_1;
+      return {
+        name: r.name,
+        stationCount: r.stationcount,
+        code: typeof code === "string" && code.length === 2 ? code : undefined,
+      };
+    });
 }
 
 export async function getCountries(search?: string): Promise<BrowseEntry[]> {
