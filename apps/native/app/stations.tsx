@@ -26,7 +26,7 @@ const PAGE = 40;
 type Params = {
   title?: string;
   country?: string;
-  /** Country code, only used to draw the flag beside the title. */
+  /** Country code: draws the flag, and is the filter when no country name is given. */
   code?: string;
   state?: string;
   tag?: string;
@@ -56,11 +56,13 @@ export default function Stations() {
 
   const key = isRecents
     ? null
-    : `stations:${params.country}:${params.state}:${tag}:${params.language}`;
+    : `stations:${params.country}:${params.code}:${params.state}:${tag}:${params.language}`;
 
   const result = useAsync<Station[]>(key && isConnected ? key : null, () =>
     searchStations({
       country: params.country,
+      // Nearby knows the country by its code rather than the directory's name for it.
+      countryCode: params.country ? undefined : params.code || undefined,
       state: params.state,
       tag,
       language: params.language,
