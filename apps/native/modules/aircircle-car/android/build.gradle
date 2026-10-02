@@ -1,0 +1,35 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.codewithkin.aircircle.car'
+version = '1.0.0'
+
+android {
+  namespace "com.codewithkin.aircircle.car"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+  lint {
+    abortOnError false
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // Kept on the same Media3 version as expo-audio: two versions of Media3 in
+  // one app do not link. Bump both together.
+  def androidxMedia3Version = "1.9.0"
+  implementation "androidx.media3:media3-session:$androidxMedia3Version"
+  implementation "androidx.media3:media3-exoplayer:$androidxMedia3Version"
+  implementation "androidx.media3:media3-exoplayer-hls:$androidxMedia3Version"
+  implementation "androidx.media3:media3-datasource:$androidxMedia3Version"
+
+  // Media3's session callbacks return Guava futures.
+  implementation "com.google.guava:guava:33.0.0-android"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "aircircle-car",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aircircle's own Android module: Android Auto browsing and playback, and the system audio output switcher."
+}
