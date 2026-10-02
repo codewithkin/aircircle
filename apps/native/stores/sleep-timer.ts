@@ -1,7 +1,7 @@
 import { AppState } from "react-native";
 import { create } from "zustand";
 
-import { usePlayer } from "@/stores/player";
+import { onPlaybackHeartbeat, usePlayer } from "@/stores/player";
 
 export const SLEEP_TIMER_PRESETS_MIN = [15, 30, 45, 60, 120] as const;
 
@@ -78,9 +78,10 @@ export const useSleepTimer = create<SleepTimerState & SleepTimerActions>((set, g
 /**
  * Keeps the timer honest and tied to playback.
  *
- * JS timers can be delayed while the app is backgrounded, so the deadline is
- * re-checked against the clock whenever the app comes forward — a late timer
- * still stops audio the moment the app is looked at.
+ * JS timers can be delayed while the app is backgrounded, so the timer is not
+ * trusted on its own. The deadline is checked against the clock on every
+ * playback heartbeat — which keeps arriving with the screen off for as long
+ * as audio plays — and again whenever the app comes forward.
  *
  * A timer with nothing left to stop is cancelled: Stop and Dismiss end it.
  * Pause does not — pausing for a minute shouldn't cost the listener their
@@ -90,6 +91,8 @@ export function startSleepTimerService(): () => void {
   const appState = AppState.addEventListener("change", (next) => {
     if (next === "active") useSleepTimer.getState().check();
   });
+
+  const unsubscribeHeartbeat = onPlaybackHeartbeat(() => useSleepTimer.getState().check());
 
   const unsubscribe = usePlayer.subscribe((state, prevState) => {
     if (state.status === prevState.status) return;
@@ -103,6 +106,7 @@ export function startSleepTimerService(): () => void {
 
   return () => {
     appState.remove();
+    unsubscribeHeartbeat();
     unsubscribe();
     clearTimer();
   };
