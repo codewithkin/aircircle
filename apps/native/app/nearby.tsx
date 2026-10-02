@@ -14,6 +14,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { findNearby } from "@/lib/nearby";
 import { springs } from "@/theme/motion";
 import { GUTTER, colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** The little station tiles that float around the "you are here" marker. */
 const SATELLITES = [
@@ -46,8 +47,8 @@ export default function Nearby() {
     if (!result.ok) {
       setNotice(
         result.reason === "denied"
-          ? "Location is off, and that’s fine. You can choose a place yourself."
-          : "We couldn’t work out where you are. You can choose a place yourself.",
+          ? t("Location is off, and that’s fine. You can choose a place yourself.")
+          : t("We couldn’t work out where you are. You can choose a place yourself."),
       );
       return;
     }
@@ -55,7 +56,7 @@ export default function Nearby() {
     router.replace({
       pathname: "/stations",
       params: {
-        title: result.locality ?? result.country ?? "Nearby",
+        title: result.locality ?? result.country ?? t("Nearby"),
         code: result.countryCode,
       },
     });
@@ -64,7 +65,7 @@ export default function Nearby() {
   return (
     <Screen>
       <View style={{ height: 60, justifyContent: "center", paddingHorizontal: 12 }}>
-        <IconButton icon="close" accessibilityLabel="Close" onPress={() => router.back()} />
+        <IconButton icon="close" accessibilityLabel={t("Close")} onPress={() => router.back()} />
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: GUTTER }}>
@@ -152,13 +153,12 @@ export default function Nearby() {
 
         <Rise index={1} style={{ marginTop: 10 }}>
           <Txt variant="titleLg" accessibilityRole="header">
-            Use your location to find nearby stations.
+            {t("Use your location to find nearby stations.")}
           </Txt>
         </Rise>
         <Rise index={2}>
           <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 12 }}>
-            Aircircle will use your approximate location to prioritize nearby radio. You can choose a
-            country or city manually instead.
+            {t("Aircircle will use your approximate location to prioritize nearby radio. You can choose a country or city manually instead.")}
           </Txt>
         </Rise>
 
@@ -184,19 +184,19 @@ export default function Nearby() {
 
         <Rise index={3} style={{ gap: 8, marginBottom: insets.bottom + 8 }}>
           <Button
-            label={working ? "Finding stations…" : "Allow Nearby stations"}
+            label={working ? t("Finding stations…") : t("Allow Nearby stations")}
             icon="near_me"
             variant="signal"
             disabled={working}
             onPress={() => void allow()}
           />
           <Button
-            label="Choose a place manually"
+            label={t("Choose a place manually")}
             variant="card"
             height={52}
             onPress={() => router.replace("/browse")}
           />
-          <Button label="Not now" variant="ghost" height={44} onPress={() => router.back()} />
+          <Button label={t("Not now")} variant="ghost" height={44} onPress={() => router.back()} />
         </Rise>
       </View>
     </Screen>

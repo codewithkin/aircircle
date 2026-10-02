@@ -20,8 +20,12 @@ import { useNetwork } from "@/stores/network";
 import { useOnboarding } from "@/stores/onboarding";
 import { useRecents } from "@/stores/recents";
 import { GUTTER, colors, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 const PAGE = 40;
+
+/** Genre names are data here — the keys the directory tags are looked up by. */
+const FALLBACK_GENRES = [msg("News"), msg("Music"), msg("Jazz"), msg("Classical"), msg("Talk")];
 
 type Params = {
   title?: string;
@@ -72,13 +76,13 @@ export default function Stations() {
 
   const stations = isRecents ? recents : (result.data ?? []);
   const loading = !isRecents && result.loading && result.data === null;
-  const title = params.title ?? "Stations";
-  const chips = preferredGenres.length > 0 ? preferredGenres : ["News", "Music", "Jazz", "Classical", "Talk"];
+  const title = params.title ?? t("Stations");
+  const chips = preferredGenres.length > 0 ? preferredGenres : FALLBACK_GENRES;
 
   const header = (
     <View>
       <Rise style={{ flexDirection: "row", alignItems: "center", gap: 6, marginLeft: -10 }}>
-        <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+        <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
         <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Flag code={params.code} size={21} />
           <Txt variant="titleLg" accessibilityRole="header" numberOfLines={1} style={{ flexShrink: 1 }}>
@@ -89,7 +93,7 @@ export default function Stations() {
           icon="search"
           background={colors.card}
           shadow
-          accessibilityLabel="Search stations"
+          accessibilityLabel={t("Search stations")}
           onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
         />
       </Rise>
@@ -97,8 +101,8 @@ export default function Stations() {
       <Rise index={1}>
         <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 6, lineHeight: 20 }}>
           {isRecents
-            ? "Stations you’ve played, newest first. Saved on this device."
-            : "Most listened first. Availability depends on the station and your region."}
+            ? t("Stations you’ve played, newest first. Saved on this device.")
+            : t("Most listened first. Availability depends on the station and your region.")}
         </Txt>
       </Rise>
 
@@ -109,9 +113,9 @@ export default function Stations() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: GUTTER, gap: 8 }}
           >
-            <Chip label="All" selected={genre === null} onPress={() => setGenre(null)} />
+            <Chip label={t("All")} selected={genre === null} onPress={() => setGenre(null)} />
             {chips.map((g) => (
-              <Chip key={g} label={g} selected={genre === g} onPress={() => setGenre(g)} />
+              <Chip key={g} label={t(g)} selected={genre === g} onPress={() => setGenre(g)} />
             ))}
           </ScrollView>
         </Rise>
@@ -129,12 +133,12 @@ export default function Stations() {
     </View>
   ) : !isConnected && !isRecents ? (
     <Rise>
-      <Txt variant="displaySm">Station lists need a connection.</Txt>
+      <Txt variant="displaySm">{t("Station lists need a connection.")}</Txt>
       <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10 }}>
-        Your Favorites and Recents are still available.
+        {t("Your Favorites and Recents are still available.")}
       </Txt>
       <Button
-        label="Retry"
+        label={t("Retry")}
         icon="refresh"
         variant="signal"
         height={52}
@@ -144,9 +148,9 @@ export default function Stations() {
     </Rise>
   ) : result.error ? (
     <Rise>
-      <Txt variant="displaySm">The directory isn’t responding.</Txt>
+      <Txt variant="displaySm">{t("The directory isn’t responding.")}</Txt>
       <Button
-        label="Try again"
+        label={t("Try again")}
         icon="refresh"
         variant="signal"
         height={52}
@@ -159,8 +163,8 @@ export default function Stations() {
     <Rise>
       <Txt variant="titleSm">
         {isRecents
-          ? "Stations you play will appear here."
-          : "We don’t have playable stations for this selection yet."}
+          ? t("Stations you play will appear here.")
+          : t("We don’t have playable stations for this selection yet.")}
       </Txt>
       <View
         style={{
@@ -175,23 +179,23 @@ export default function Stations() {
         {genre ? (
           <ActionRow
             icon="manage_search"
-            title="Broaden the selection"
-            subtitle={`Show every genre in ${title}`}
+            title={t("Broaden the selection")}
+            subtitle={t("Show every genre in {{title}}", { title })}
             onPress={() => setGenre(null)}
           />
         ) : null}
         <ActionRow
           icon="explore"
           tone="ok"
-          title="Choose another place or genre"
-          subtitle="Country, city, language"
+          title={t("Choose another place or genre")}
+          subtitle={t("Country, city, language")}
           onPress={() => router.replace("/browse")}
         />
         <ActionRow
           icon="search"
           tone="violet"
-          title="Search by name"
-          subtitle="Find a station you already know"
+          title={t("Search by name")}
+          subtitle={t("Find a station you already know")}
           divider={false}
           onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
         />

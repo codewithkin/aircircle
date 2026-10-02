@@ -43,6 +43,7 @@ import { useRecordings } from "@/stores/recordings";
 import { useToast } from "@/stores/toast";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** Dragging the screen down past this distance minimizes it. */
 const MINIMIZE_DISTANCE = 120;
@@ -66,7 +67,7 @@ function RecordPill() {
       disabled={isStarting}
       haptic="confirm"
       accessibilityRole="button"
-      accessibilityLabel={recording ? "Stop recording" : `Record ${station.name} for offline listening`}
+      accessibilityLabel={recording ? t("Stop recording") : t("Record {{name}} for offline listening", { name: station.name })}
       style={{
         height: 44,
         borderRadius: 22,
@@ -86,7 +87,7 @@ function RecordPill() {
         filled
       />
       <Txt variant="label" color={recording ? "#AC1922" : colors.ink}>
-        {isStarting ? "Starting…" : recording ? "Stop" : "Record"}
+        {isStarting ? t("Starting…") : recording ? t("Stop") : t("Record")}
       </Txt>
     </PressableScale>
   );
@@ -121,14 +122,14 @@ export default function NowPlaying() {
   useEffect(() => {
     if (lastSaved) {
       useToast.getState().show({
-        message: "Saved for offline listening",
+        message: t("Saved for offline listening"),
         icon: "download_done",
-        actionLabel: "View",
+        actionLabel: t("View"),
         onAction: () => router.push("/recordings"),
       });
       useRecordings.getState().acknowledge();
     } else if (recordingFailure) {
-      useToast.getState().show({ message: RECORDING_FAILURE_MESSAGES[recordingFailure], icon: "error" });
+      useToast.getState().show({ message: t(RECORDING_FAILURE_MESSAGES[recordingFailure]), icon: "error" });
       useRecordings.getState().acknowledge();
     }
   }, [lastSaved, recordingFailure, router]);
@@ -213,7 +214,7 @@ export default function NowPlaying() {
                 icon="expand_more"
                 iconSize={28}
                 color={onDark ? colors.onInk : colors.ink}
-                accessibilityLabel="Minimize player"
+                accessibilityLabel={t("Minimize player")}
                 onPress={minimize}
               />
             </View>
@@ -226,10 +227,10 @@ export default function NowPlaying() {
               ) : (
                 <>
                   <Txt variant="eyebrow" color={view === "failed" ? colors.alert : colors.inkSoft}>
-                    {recording ? "Recorded" : "Live radio"}
+                    {recording ? t("Recorded") : t("Live radio")}
                   </Txt>
                   <Txt variant="label" numberOfLines={1}>
-                    {recording ? "Saved on this device" : isFavorite ? "From Favorites" : "Aircircle"}
+                    {recording ? t("Saved on this device") : isFavorite ? t("From Favorites") : "Aircircle"}
                   </Txt>
                 </>
               )}
@@ -279,7 +280,7 @@ export default function NowPlaying() {
                         color={colors.onInk}
                         style={{ fontFamily: fonts.sansSemibold, letterSpacing: 0.72 }}
                       >
-                        {recording ? "RECORDED" : "LIVE"}
+                        {recording ? t("RECORDED") : t("LIVE")}
                       </Txt>
                     </View>
                     <View
@@ -297,16 +298,16 @@ export default function NowPlaying() {
                       <EqBars size={15} active={isPlaying} />
                       <Txt variant="tab" accessibilityLiveRegion="polite">
                         {isPlaying
-                          ? "Playing"
+                          ? t("Playing")
                           : isLoading
-                            ? "Loading"
+                            ? t("Loading")
                             : pauseReason === "external"
-                              ? "Paused by your phone"
+                              ? t("Paused by your phone")
                               : pauseReason === "route"
-                                ? "Output disconnected"
+                                ? t("Output disconnected")
                               : status === "stopped"
-                                ? "Stopped"
-                                : "Paused"}
+                                ? t("Stopped")
+                                : t("Paused")}
                       </Txt>
                     </View>
                   </View>
@@ -316,7 +317,7 @@ export default function NowPlaying() {
                   </Txt>
                   {recording ? (
                     <Txt variant="body" color={colors.inkSoft} style={{ lineHeight: 18 }}>
-                      Playing a saved recording.
+                      {t("Playing a saved recording.")}
                     </Txt>
                   ) : subtitle ? (
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -349,7 +350,7 @@ export default function NowPlaying() {
                     >
                       <Icon name="headphones" size={20} color={colors.amber} />
                       <Txt variant="meta" color={colors.amber} accessibilityLiveRegion="polite" style={{ flex: 1 }}>
-                        Playback paused — audio route disconnected. Press Play to continue on this phone.
+                        {t("Playback paused — audio route disconnected. Press Play to continue on this phone.")}
                       </Txt>
                     </View>
                   </Rise>
@@ -383,19 +384,19 @@ export default function NowPlaying() {
                       <IconButton
                         icon="replay_30"
                         size={52}
-                        accessibilityLabel="Back 30 seconds"
+                        accessibilityLabel={t("Back 30 seconds")}
                         onPress={() => usePlayer.getState().seekTo(position - 30)}
                       />
                       <PlayButton
                         size={72}
                         state={isLoading ? "loading" : isPlaying ? "pause" : "play"}
                         onPress={() => void usePlayer.getState().toggle()}
-                        accessibilityLabel={isPlaying ? "Pause recording" : "Play recording"}
+                        accessibilityLabel={isPlaying ? t("Pause recording") : t("Play recording")}
                       />
                       <IconButton
                         icon="forward_30"
                         size={52}
-                        accessibilityLabel="Forward 30 seconds"
+                        accessibilityLabel={t("Forward 30 seconds")}
                         onPress={() => usePlayer.getState().seekTo(position + 30)}
                       />
                     </View>
@@ -421,7 +422,7 @@ export default function NowPlaying() {
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <Icon name="download_done" size={18} color={colors.ok} />
                       <Txt variant="label" color={colors.inkSoft}>
-                        Plays without a connection
+                        {t("Plays without a connection")}
                       </Txt>
                     </View>
                   ) : (
@@ -431,12 +432,12 @@ export default function NowPlaying() {
                         onPress={() => void usePlayer.getState().usePrimaryStream()}
                         hitSlop={12}
                         accessibilityRole="button"
-                        accessibilityLabel="Playing an alternate stream. Switch back to the main stream."
+                        accessibilityLabel={t("Playing an alternate stream. Switch back to the main stream.")}
                         style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
                       >
                         <Icon name="swap_horiz" size={18} color={colors.amber} />
                         <Txt variant="label" color={colors.amber}>
-                          Alternate stream · Use main
+                          {t("Alternate stream · Use main")}
                         </Txt>
                       </PressableScale>
                     ) : (
@@ -447,7 +448,7 @@ export default function NowPlaying() {
                           color={isPlaying ? colors.ok : colors.inkSoft}
                         />
                         <Txt variant="label" color={colors.inkSoft}>
-                          {isPlaying ? "Stream stable" : "Online stream"}
+                          {isPlaying ? t("Stream stable") : t("Online stream")}
                         </Txt>
                       </View>
                     )
@@ -457,10 +458,10 @@ export default function NowPlaying() {
                       onPress={() => void Linking.openURL(station.homepage!).catch(() => {})}
                       hitSlop={12}
                       accessibilityRole="link"
-                      accessibilityLabel={`Open ${station.name} website`}
+                      accessibilityLabel={t("Open {{name}} website", { name: station.name })}
                       style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
                     >
-                      <Txt variant="label">Website</Txt>
+                      <Txt variant="label">{t("Website")}</Txt>
                       <Icon name="arrow_outward" size={16} />
                     </PressableScale>
                   ) : null}

@@ -26,6 +26,7 @@ import { useNetwork } from "@/stores/network";
 import { useRecentSearches } from "@/stores/recent-searches";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 type Scope = "all" | "stations" | "places" | "genres";
 type Filter = "country" | "genre" | "language";
@@ -33,10 +34,10 @@ type Filter = "country" | "genre" | "language";
 type Results = { stations: Station[]; places: BrowseEntry[]; genres: BrowseEntry[] };
 
 const SCOPES: { value: Scope; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "stations", label: "Stations" },
-  { value: "places", label: "Places" },
-  { value: "genres", label: "Genres" },
+  { value: "all", label: msg("All") },
+  { value: "stations", label: msg("Stations") },
+  { value: "places", label: msg("Places") },
+  { value: "genres", label: msg("Genres") },
 ];
 
 /** Results wait this long after the last keystroke, so typing never stutters. */
@@ -65,7 +66,7 @@ function ScopeTab({
       }}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
-      accessibilityLabel={count === null ? label : `${label}, ${count} results`}
+      accessibilityLabel={count === null ? label : t("{{label}}, {{count}} results", { label, count })}
       style={{ paddingHorizontal: 10, justifyContent: "center" }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -230,7 +231,7 @@ export default function Search() {
             >
               <IconButton
                 icon="arrow_back"
-                accessibilityLabel="Back to Home"
+                accessibilityLabel={t("Back to Home")}
                 onPress={() => {
                   Keyboard.dismiss();
                   router.navigate("/");
@@ -240,13 +241,13 @@ export default function Search() {
                 ref={inputRef}
                 value={text}
                 onChangeText={setText}
-                placeholder="Station, city or genre"
+                placeholder={t("Station, city or genre")}
                 placeholderTextColor={colors.inkFaint}
                 returnKeyType="search"
                 autoCorrect={false}
                 autoCapitalize="none"
                 selectionColor={colors.signal}
-                accessibilityLabel="Search live radio"
+                accessibilityLabel={t("Search live radio")}
                 onSubmitEditing={() => {
                   if (text.trim()) useRecentSearches.getState().add(text);
                 }}
@@ -270,7 +271,7 @@ export default function Search() {
                   size={38}
                   iconSize={18}
                   background={colors.chip}
-                  accessibilityLabel="Clear search"
+                  accessibilityLabel={t("Clear search")}
                   onPress={clear}
                 />
               ) : null}
@@ -282,7 +283,7 @@ export default function Search() {
               {SCOPES.map((s) => (
                 <ScopeTab
                   key={s.value}
-                  label={s.label}
+                  label={t(s.label)}
                   count={results.data && active ? counts[s.value] : null}
                   active={scope === s.value}
                   onPress={() => setScope(s.value)}
@@ -301,7 +302,7 @@ export default function Search() {
           contentContainerStyle={{ paddingHorizontal: GUTTER, gap: 8 }}
         >
           <Chip
-            label="Filters"
+            label={t("Filters")}
             icon="tune"
             tone={hasFilters ? "signal" : "chip"}
             selected={hasFilters}
@@ -309,9 +310,9 @@ export default function Search() {
           />
           {(
             [
-              ["country", "Country"],
-              ["genre", "Genre"],
-              ["language", "Language"],
+              ["country", t("Country")],
+              ["genre", t("Genre")],
+              ["language", t("Language")],
             ] as const
           ).map(([key, label]) =>
             filters[key] ? (
@@ -321,7 +322,7 @@ export default function Search() {
                 selected
                 label={titleCase(filters[key])}
                 trailingIcon="close"
-                accessibilityLabel={`Remove ${label.toLowerCase()} filter: ${filters[key]}`}
+                accessibilityLabel={t("Remove {{label}} filter: {{value}}", { label: label.toLowerCase(), value: filters[key] })}
                 onPress={() => setFilters((f) => ({ ...f, [key]: null }))}
               />
             ) : (
@@ -354,21 +355,21 @@ export default function Search() {
               <Icon name="wifi_off" size={26} />
             </View>
             <Txt variant="displaySm" style={{ marginTop: 22, maxWidth: 300 }}>
-              Station search needs a connection.
+              {t("Station search needs a connection.")}
             </Txt>
             <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10, maxWidth: 300 }}>
-              Your Favorites and Recents are still available.
+              {t("Your Favorites and Recents are still available.")}
             </Txt>
             <View style={{ flexDirection: "row", gap: 10, marginTop: 22 }}>
               <Button
-                label="Retry"
+                label={t("Retry")}
                 icon="refresh"
                 variant="signal"
                 height={52}
                 onPress={() => void useNetwork.getState().check()}
               />
               <Button
-                label="Open Favorites"
+                label={t("Open Favorites")}
                 variant="outline"
                 height={52}
                 onPress={() => router.navigate("/favorites")}
@@ -380,7 +381,7 @@ export default function Search() {
           <>
             {recentSearches.length > 0 ? (
               <Rise index={2}>
-                <Eyebrow>Recent searches</Eyebrow>
+                <Eyebrow>{t("Recent searches")}</Eyebrow>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   {recentSearches.map((q) => (
                     <Chip
@@ -393,7 +394,7 @@ export default function Search() {
                         haptics.lift();
                         useRecentSearches.getState().remove(q);
                       }}
-                      accessibilityLabel={`Search for ${q}. Long press to delete.`}
+                      accessibilityLabel={t("Search for {{q}}. Long press to delete.", { q })}
                     />
                   ))}
                 </View>
@@ -413,14 +414,14 @@ export default function Search() {
               <ActionRow
                 icon="explore"
                 tone="ok"
-                title="Browse by place or genre"
-                subtitle="Country, city, language"
+                title={t("Browse by place or genre")}
+                subtitle={t("Country, city, language")}
                 onPress={() => router.push("/browse")}
               />
               <ActionRow
                 icon="near_me"
-                title="Stations near you"
-                subtitle="Uses your approximate location"
+                title={t("Stations near you")}
+                subtitle={t("Uses your approximate location")}
                 onPress={() => router.push("/nearby")}
                 divider={false}
               />
@@ -436,13 +437,13 @@ export default function Search() {
         ) : results.error && !results.data ? (
           <Rise>
             <Txt variant="displaySm" style={{ maxWidth: 300 }}>
-              The directory isn’t responding.
+              {t("The directory isn’t responding.")}
             </Txt>
             <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10 }}>
-              This is usually brief. Your search is still here.
+              {t("This is usually brief. Your search is still here.")}
             </Txt>
             <Button
-              label="Try again"
+              label={t("Try again")}
               icon="refresh"
               variant="signal"
               height={52}
@@ -492,10 +493,10 @@ export default function Search() {
                 <Icon name="search_off" size={26} />
               </View>
               <Txt variant="displaySm" accessibilityRole="header" style={{ marginTop: 22, maxWidth: 300 }}>
-                No playable station found.
+                {t("No playable station found.")}
               </Txt>
               <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10, maxWidth: 300 }}>
-                It may not be indexed yet, or it may have changed its name.
+                {t("It may not be indexed yet, or it may have changed its name.")}
               </Txt>
             </Rise>
 
@@ -513,42 +514,42 @@ export default function Search() {
               {scopeEmpty && total > 0 ? (
                 <ActionRow
                   icon="manage_search"
-                  title="Show all results"
-                  subtitle={`${total} in other tabs`}
+                  title={t("Show all results")}
+                  subtitle={t("{{number}} in other tabs", { number: total })}
                   onPress={() => setScope("all")}
                 />
               ) : hasFilters ? (
                 <ActionRow
                   icon="manage_search"
-                  title="Remove filters"
-                  subtitle="Search every country, genre and language"
+                  title={t("Remove filters")}
+                  subtitle={t("Search every country, genre and language")}
                   onPress={() => setFilters({ country: null, genre: null, language: null })}
                 />
               ) : firstWord && firstWord !== query ? (
                 <ActionRow
                   icon="manage_search"
-                  title="Broaden your search"
-                  subtitle={`Search “${firstWord}” instead`}
+                  title={t("Broaden your search")}
+                  subtitle={t("Search “{{firstWord}}” instead", { firstWord })}
                   onPress={() => setText(firstWord)}
                 />
               ) : null}
               <ActionRow
                 icon="explore"
                 tone="ok"
-                title="Browse by place or genre"
-                subtitle="Country, city, language"
+                title={t("Browse by place or genre")}
+                subtitle={t("Country, city, language")}
                 onPress={() => router.push("/browse")}
               />
               <ActionRow
                 icon="add_circle"
                 tone="violet"
-                title="Request this station"
-                subtitle="Send the name to our directory team"
+                title={t("Request this station")}
+                subtitle={t("Send the name to our directory team")}
                 divider={false}
                 onPress={() =>
                   void Linking.openURL(
                     `mailto:${REPORT_EMAIL ?? ""}?subject=${encodeURIComponent(
-                      `Station request: ${query}`,
+                      t("Station request: {{query}}", { query }),
                     )}`,
                   ).catch(() => {})
                 }
@@ -557,7 +558,7 @@ export default function Search() {
 
             {recentSearches.length > 0 ? (
               <Rise index={2} style={{ marginTop: 24 }}>
-                <Eyebrow>Recent searches</Eyebrow>
+                <Eyebrow>{t("Recent searches")}</Eyebrow>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   {recentSearches.slice(0, 6).map((q) => (
                     <Chip key={q} tone="card" icon="history" label={q} onPress={() => setText(q)} />
@@ -572,7 +573,7 @@ export default function Search() {
             {showStations && stations.length > 0 ? (
               <>
                 <Rise>
-                  <Eyebrow>Top result</Eyebrow>
+                  <Eyebrow>{t("Top result")}</Eyebrow>
                 </Rise>
                 <Rise index={1} style={{ marginTop: 12 }}>
                   <TopResult station={stations[0]} />
@@ -581,7 +582,7 @@ export default function Search() {
                 {stations.length > 1 ? (
                   <>
                     <Rise index={2} style={{ marginTop: 24 }}>
-                      <Eyebrow>Stations</Eyebrow>
+                      <Eyebrow>{t("Stations")}</Eyebrow>
                     </Rise>
                     <View style={{ marginTop: 2 }}>
                       {stations.slice(1).map((s, i, list) => (
@@ -601,7 +602,7 @@ export default function Search() {
 
             {showPlaces ? (
               <Rise index={4} style={{ marginTop: showStations && stations.length > 0 ? 24 : 0 }}>
-                <Eyebrow>Places</Eyebrow>
+                <Eyebrow>{t("Places")}</Eyebrow>
                 <View
                   style={{
                     marginTop: 12,
@@ -618,7 +619,7 @@ export default function Search() {
                       icon="place"
                       tone="neutral"
                       title={p.name}
-                      subtitle={`${p.stationCount.toLocaleString()} stations`}
+                      subtitle={t("{{number}} stations", { number: p.stationCount.toLocaleString() })}
                       divider={i < places.length - 1}
                       onPress={() => openStations({ title: p.name, country: p.name })}
                     />
@@ -629,7 +630,7 @@ export default function Search() {
 
             {showGenres ? (
               <Rise index={5} style={{ marginTop: 24 }}>
-                <Eyebrow>Genres</Eyebrow>
+                <Eyebrow>{t("Genres")}</Eyebrow>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   {genres.map((g) => (
                     <Chip
@@ -657,7 +658,7 @@ export default function Search() {
       <PickerSheet
         visible={picker === "country"}
         onClose={() => setPicker(null)}
-        title="Country"
+        title={t("Country")}
         load={() => getCountries().then((list) => list.slice(0, 250))}
         selected={filters.country}
         onSelect={(country) => setFilters((f) => ({ ...f, country }))}
@@ -665,7 +666,7 @@ export default function Search() {
       <PickerSheet
         visible={picker === "genre"}
         onClose={() => setPicker(null)}
-        title="Genre"
+        title={t("Genre")}
         load={() => getGenres(undefined, 120)}
         selected={filters.genre}
         onSelect={(genre) => setFilters((f) => ({ ...f, genre }))}
@@ -673,7 +674,7 @@ export default function Search() {
       <PickerSheet
         visible={picker === "language"}
         onClose={() => setPicker(null)}
-        title="Language"
+        title={t("Language")}
         load={() => getLanguages().then((list) => list.slice(0, 150))}
         selected={filters.language}
         onSelect={(language) => setFilters((f) => ({ ...f, language }))}

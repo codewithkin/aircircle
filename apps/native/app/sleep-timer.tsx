@@ -23,6 +23,7 @@ import { useSettings } from "@/stores/settings";
 import { SLEEP_TIMER_PRESETS_MIN, useSleepTimer } from "@/stores/sleep-timer";
 import { springs, timing } from "@/theme/motion";
 import { GUTTER, colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const RING = 290;
 const STROKE = 13;
@@ -34,8 +35,8 @@ const RING_MINUTES = 120;
 const SNAP_MINUTES = 5;
 
 function presetLabel(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  return minutes === 60 ? "1 hour" : `${minutes / 60} hours`;
+  if (minutes < 60) return t("{{minutes}} min", { minutes });
+  return minutes === 60 ? t("1 hour") : t("{{hours}} hours", { hours: minutes / 60 });
 }
 
 function Preset({
@@ -59,7 +60,7 @@ function Preset({
       onPressOut={() => setPressed(false)}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${presetLabel(minutes)} sleep timer`}
+      accessibilityLabel={t("{{length}} sleep timer", { length: presetLabel(minutes) })}
     >
       <MotiView
         animate={{
@@ -164,12 +165,12 @@ export default function SleepTimer() {
               icon="expand_more"
               iconSize={28}
               color={colors.onInk}
-              accessibilityLabel="Close sleep timer"
+              accessibilityLabel={t("Close sleep timer")}
               onPress={() => router.back()}
             />
           </View>
           <Txt variant="bodyMedium" color={colors.onInk} accessibilityRole="header">
-            Sleep timer
+            {t("Sleep timer")}
           </Txt>
           <View style={{ flex: 1 }} />
         </View>
@@ -201,7 +202,7 @@ export default function SleepTimer() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
               <EqBars size={15} color={colors.nightText} active={status === "playing"} />
               <Txt variant="caption" color={colors.nightText}>
-                {status === "playing" ? "Playing" : "Paused"}
+                {status === "playing" ? t("Playing") : t("Paused")}
               </Txt>
             </View>
           </Rise>
@@ -257,8 +258,8 @@ export default function SleepTimer() {
                 color={colors.onInk}
                 accessibilityLabel={
                   running && !dragging
-                    ? `${Math.ceil(remainingMs / 60_000)} minutes left`
-                    : `${dragging ? dragged : chosen} minutes selected`
+                    ? t("{{minutes}} minutes left", { minutes: Math.ceil(remainingMs / 60_000) })
+                    : t("{{minutes}} minutes selected", { minutes: dragging ? dragged : chosen })
                 }
                 style={{ fontVariant: ["tabular-nums"] }}
               >
@@ -266,10 +267,10 @@ export default function SleepTimer() {
               </Txt>
               <Txt variant="body" color={colors.nightText} style={{ lineHeight: 18 }}>
                 {dragging
-                  ? `Release to stop at ${formatTimeOfDay(stopsAt)}`
+                  ? t("Release to stop at {{time}}", { time: formatTimeOfDay(stopsAt) })
                   : running
-                    ? `Stops at ${formatTimeOfDay(stopsAt)}`
-                    : "Drag the ring or pick a time"}
+                    ? t("Stops at {{time}}", { time: formatTimeOfDay(stopsAt) })
+                    : t("Drag the ring or pick a time")}
               </Txt>
             </View>
 
@@ -278,8 +279,8 @@ export default function SleepTimer() {
             <View
               accessible
               accessibilityRole="adjustable"
-              accessibilityLabel="Sleep timer length"
-              accessibilityValue={{ text: `${dragging ? dragged : chosen} minutes` }}
+              accessibilityLabel={t("Sleep timer length")}
+              accessibilityValue={{ text: t("{{minutes}} minutes", { minutes: dragging ? dragged : chosen }) }}
               accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
               onAccessibilityAction={(e) => {
                 const base = running ? Math.ceil(remainingMs / 60_000) : chosen;
@@ -330,25 +331,25 @@ export default function SleepTimer() {
             style={{ textAlign: "center", marginBottom: 16, lineHeight: 19 }}
           >
             {station
-              ? `Playback stops at ${formatTimeOfDay(stopsAt)}, even with the phone locked.`
-              : "Start a station first — the timer stops whatever is playing."}
+              ? t("Playback stops at {{time}}, even with the phone locked.", { time: formatTimeOfDay(stopsAt) })
+              : t("Start a station first — the timer stops whatever is playing.")}
           </Txt>
 
           {running ? (
             <View style={{ flexDirection: "row", gap: 10 }}>
               <Button
-                label="Turn off"
+                label={t("Turn off")}
                 variant="nightOutline"
                 onPress={() => {
                   cancel();
                   router.back();
                 }}
               />
-              <Button label="Add 15 min" icon="add" variant="night" grow onPress={() => extend(15)} />
+              <Button label={t("Add 15 min")} icon="add" variant="night" grow onPress={() => extend(15)} />
             </View>
           ) : (
             <Button
-              label={`Start ${presetLabel(chosen)} timer`}
+              label={t("Start {{length}} timer", { length: presetLabel(chosen) })}
               icon="bedtime"
               variant="night"
               disabled={!station}

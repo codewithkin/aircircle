@@ -26,15 +26,16 @@ import { useOnboarding } from "@/stores/onboarding";
 import { usePlayer } from "@/stores/player";
 import { useRecents } from "@/stores/recents";
 import { GUTTER, colors, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
-const DEFAULT_GENRES = ["News", "Music", "Jazz", "Classical"];
+const DEFAULT_GENRES = [msg("News"), msg("Music"), msg("Jazz"), msg("Classical")];
 
 function greeting(): string {
   const hour = new Date().getHours();
-  if (hour < 5) return "Good night";
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 5) return t("Good night");
+  if (hour < 12) return t("Good morning");
+  if (hour < 18) return t("Good afternoon");
+  return t("Good evening");
 }
 
 /** A horizontal strip that bleeds to the screen edges and scrolls sideways. */
@@ -123,7 +124,7 @@ export default function Home() {
             >
               <Icon name="radio" size={16} color={colors.inkSoft} />
               <Txt variant="caption" color={colors.inkSoft}>
-                Try a known station by name or call sign.
+                {t("Try a known station by name or call sign.")}
               </Txt>
             </Rise>
           ) : null}
@@ -142,11 +143,11 @@ export default function Home() {
             {chipGenres.map((genre) => (
               <Chip
                 key={genre}
-                label={genre}
-                onPress={() => openStations({ title: genre, tag: genreTag(genre) })}
+                label={t(genre)}
+                onPress={() => openStations({ title: t(genre), tag: genreTag(genre) })}
               />
             ))}
-            <Chip label="Anywhere" icon="public" onPress={() => router.push("/browse")} />
+            <Chip label={t("Anywhere")} icon="public" onPress={() => router.push("/browse")} />
           </Strip>
         </Rise>
 
@@ -164,9 +165,9 @@ export default function Home() {
             <Rise index={3} style={{ marginTop: 26, paddingHorizontal: GUTTER }}>
               <SectionHeader
                 large
-                title={matched ? "For your first listen" : "Play from anywhere"}
+                title={matched ? t("For your first listen") : t("Play from anywhere")}
                 subtitle={
-                  matched ? "Picked from your choices" : "Live now and popular around the world"
+                  matched ? t("Picked from your choices") : t("Live now and popular around the world")
                 }
               />
             </Rise>
@@ -216,20 +217,20 @@ export default function Home() {
                 <Icon name="travel_explore" size={24} color={colors.signalDeep} />
               </View>
               <Txt variant="titleSm" style={{ marginTop: 18, maxWidth: 280 }}>
-                We’re still building coverage here.
+                {t("We’re still building coverage here.")}
               </Txt>
               <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 6 }}>
-                Try another place or search by name.
+                {t("Try another place or search by name.")}
               </Txt>
               <View style={{ gap: 8, marginTop: 18 }}>
                 <Button
-                  label="Choose another place"
+                  label={t("Choose another place")}
                   icon="place"
                   height={46}
                   onPress={() => router.push("/browse")}
                 />
                 <Button
-                  label="Search by name"
+                  label={t("Search by name")}
                   variant="card"
                   height={46}
                   onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
@@ -242,10 +243,10 @@ export default function Home() {
         {starters.error && !starters.data ? (
           <Rise index={4} style={{ marginTop: 22, paddingHorizontal: GUTTER, gap: 12 }}>
             <Txt variant="body" color={colors.inkSoft}>
-              The station directory isn’t responding. Your Favorites and Recents still work.
+              {t("The station directory isn’t responding. Your Favorites and Recents still work.")}
             </Txt>
             <Button
-              label="Try again"
+              label={t("Try again")}
               icon="refresh"
               variant="outline"
               height={46}
@@ -259,9 +260,9 @@ export default function Home() {
           <>
             <Rise index={5} style={{ marginTop: 26, paddingHorizontal: GUTTER }}>
               <SectionHeader
-                title="Recent"
-                actionLabel="See all"
-                onAction={() => openStations({ title: "Recent", source: "recents" })}
+                title={t("Recent")}
+                actionLabel={t("See all")}
+                onAction={() => openStations({ title: t("Recent"), source: "recents" })}
               />
             </Rise>
             <View style={{ marginTop: 14 }}>
@@ -279,8 +280,8 @@ export default function Home() {
           <View style={{ marginTop: 26, paddingHorizontal: GUTTER }}>
             <Rise index={7}>
               <SectionHeader
-                title={matched ? "From your choices" : "Popular right now"}
-                actionLabel="Browse"
+                title={matched ? t("From your choices") : t("Popular right now")}
+                actionLabel={t("Browse")}
                 onAction={() => router.push("/browse")}
               />
             </Rise>
@@ -304,9 +305,9 @@ export default function Home() {
         {intents.includes("sleep") ? (
           <Rise index={8} style={{ marginTop: 20, paddingHorizontal: GUTTER }}>
             <PressableScale
-              onPress={() => openStations({ title: "Wind down", tag: "ambient" })}
+              onPress={() => openStations({ title: t("Wind down"), tag: "ambient" })}
               accessibilityRole="button"
-              accessibilityLabel="Wind down: calm stations and a sleep timer"
+              accessibilityLabel={t("Wind down: calm stations and a sleep timer")}
               style={{
                 borderRadius: 24,
                 backgroundColor: colors.night,
@@ -343,10 +344,10 @@ export default function Home() {
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Txt variant="bodyLg" color={colors.onInk}>
-                  Wind down
+                  {t("Wind down")}
                 </Txt>
                 <Txt variant="caption" color="#B8BCC8">
-                  Calm stations and a sleep timer, ready when you are.
+                  {t("Calm stations and a sleep timer, ready when you are.")}
                 </Txt>
               </View>
               <View

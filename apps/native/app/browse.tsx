@@ -27,14 +27,15 @@ import { genreTag } from "@/lib/recommendations";
 import { useOnboarding } from "@/stores/onboarding";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 type Tab = "country" | "city" | "language" | "genre";
 
 const TABS: { value: Tab; label: string }[] = [
-  { value: "country", label: "Country" },
-  { value: "city", label: "City" },
-  { value: "language", label: "Language" },
-  { value: "genre", label: "Genre" },
+  { value: "country", label: msg("Country") },
+  { value: "city", label: msg("City") },
+  { value: "language", label: msg("Language") },
+  { value: "genre", label: msg("Genre") },
 ];
 
 const ROW_HEIGHT = 66;
@@ -64,7 +65,7 @@ function BigRow({
       onPress={onPress}
       pressedScale={0.985}
       accessibilityRole="button"
-      accessibilityLabel={`${label}, ${entry.stationCount} stations`}
+      accessibilityLabel={t("{{label}}, {{count}} stations", { label, count: entry.stationCount })}
       style={{
         height: ROW_HEIGHT,
         flexDirection: "row",
@@ -136,7 +137,7 @@ function LetterRail({
   return (
     <View
       accessibilityRole="adjustable"
-      accessibilityLabel="Jump to a letter"
+      accessibilityLabel={t("Jump to a letter")}
       onLayout={(e) => {
         height.current = e.nativeEvent.layout.height;
       }}
@@ -227,10 +228,10 @@ export default function Browse() {
     ) : state.error && data.length === 0 ? (
       <View style={{ paddingHorizontal: GUTTER, gap: 14, marginTop: 20 }}>
         <Txt variant="body" color={colors.inkSoft}>
-          Couldn’t load this list. Check your connection.
+          {t("Couldn’t load this list. Check your connection.")}
         </Txt>
         <Button
-          label="Try again"
+          label={t("Try again")}
           icon="refresh"
           variant="outline"
           height={46}
@@ -258,19 +259,19 @@ export default function Browse() {
     <Screen>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 8 }}>
         <Rise style={{ flexDirection: "row", alignItems: "center", gap: 6, marginLeft: -10 }}>
-          <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+          <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
           <Txt variant="titleLg" accessibilityRole="header" style={{ flex: 1, fontSize: 28 }}>
-            Browse
+            {t("Browse")}
           </Txt>
           <IconButton
             icon="search"
-            accessibilityLabel="Search stations"
+            accessibilityLabel={t("Search stations")}
             onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
           />
         </Rise>
 
         <Rise index={1} style={{ marginTop: 14 }}>
-          <Segmented options={TABS} value={tab} onChange={setTab} accessibilityLabel="Browse by" />
+          <Segmented options={TABS.map((o) => ({ ...o, label: t(o.label) }))} value={tab} onChange={setTab} accessibilityLabel={t("Browse by")} />
         </Rise>
       </View>
 
@@ -289,7 +290,7 @@ export default function Browse() {
                 onPress={() => router.push("/nearby")}
                 pressedScale={0.985}
                 accessibilityRole="button"
-                accessibilityLabel="Find stations near you"
+                accessibilityLabel={t("Find stations near you")}
                 style={{
                   borderRadius: 18,
                   backgroundColor: colors.card,
@@ -303,10 +304,10 @@ export default function Browse() {
               >
                 <Icon name="near_me" size={20} />
                 <Txt variant="meta" style={{ flex: 1 }}>
-                  Stations near you
+                  {t("Stations near you")}
                 </Txt>
                 <Txt variant="label" style={{ fontFamily: fonts.sansSemibold }}>
-                  Find
+                  {t("Find")}
                 </Txt>
               </PressableScale>
             </View>
@@ -334,15 +335,15 @@ export default function Browse() {
                     ListEmptyComponent={
                       <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 20 }}>
                         {countries.error
-                          ? "Couldn’t load countries. Check your connection."
-                          : "No countries to show."}
+                          ? t("Couldn’t load countries. Check your connection.")
+                          : t("No countries to show.")}
                       </Txt>
                     }
                     renderItem={({ item, index }) => (
                       <BigRow
                         entry={item}
                         label={item.name}
-                        highlight={index < mine.length ? "Your place" : undefined}
+                        highlight={index < mine.length ? t("Your place") : undefined}
                         onPress={() =>
                           openStations({ title: item.name, country: item.name, code: item.code ?? "" })
                         }
@@ -364,7 +365,7 @@ export default function Browse() {
           <>
             <View style={{ paddingHorizontal: GUTTER, flexDirection: "row", marginBottom: 6 }}>
               <Chip
-                label={country ?? "Choose a country"}
+                label={country ?? t("Choose a country")}
                 icon="place"
                 trailingIcon="expand_more"
                 tone={country ? "signal" : "card"}
@@ -383,11 +384,11 @@ export default function Browse() {
                     onPress={() => openStations({ title: item.name, country, state: item.name })}
                   />
                 ),
-                `No cities or regions are listed for ${country} yet. Coverage varies by country.`,
+                t("No cities or regions are listed for {{country}} yet. Coverage varies by country.", { country }),
               )
             ) : (
               <Txt variant="body" color={colors.inkSoft} style={{ paddingHorizontal: GUTTER, marginTop: 14 }}>
-                Pick a country to see its cities and regions.
+                {t("Pick a country to see its cities and regions.")}
               </Txt>
             )}
           </>
@@ -404,7 +405,7 @@ export default function Browse() {
                   onPress={() => openStations({ title: titleCase(item.name), language: item.name })}
                 />
               ),
-              "No languages to show.",
+              t("No languages to show."),
             )
           : null}
 
@@ -416,18 +417,18 @@ export default function Browse() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 }}>
               <Icon name="info" size={16} color={colors.inkFaint} />
               <Txt variant="caption" color={colors.inkFaint} style={{ flex: 1 }}>
-                Availability depends on the station and your region.
+                {t("Availability depends on the station and your region.")}
               </Txt>
             </View>
 
             <GenreGrid
               picks={genrePicks}
-              onSelect={(genre) => openStations({ title: genre, tag: genreTag(genre) })}
+              onSelect={(genre) => openStations({ title: t(genre), tag: genreTag(genre) })}
             />
 
             {(moreGenres.data ?? []).length > 0 ? (
               <View style={{ marginTop: 26 }}>
-                <Eyebrow>More genres</Eyebrow>
+                <Eyebrow>{t("More genres")}</Eyebrow>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   {(moreGenres.data ?? []).map((g) => (
                     <Chip
@@ -447,7 +448,7 @@ export default function Browse() {
       <PickerSheet
         visible={countryPicker}
         onClose={() => setCountryPicker(false)}
-        title="Country"
+        title={t("Country")}
         load={() => getCountries().then((l) => l.slice(0, 250))}
         selected={country}
         onSelect={setCountry}

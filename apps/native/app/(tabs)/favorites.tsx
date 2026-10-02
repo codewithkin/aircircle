@@ -18,14 +18,15 @@ import { useFavorites } from "@/stores/favorites";
 import { totalRecordingBytes, useRecordings } from "@/stores/recordings";
 import { springs, timing } from "@/theme/motion";
 import { GUTTER, colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type Layout = "grid" | "list";
 
 /** The two-icon switch between the preset grid and the compact list. */
 function LayoutSwitch({ value, onChange }: { value: Layout; onChange: (v: Layout) => void }) {
   const options: { value: Layout; icon: IconName; label: string }[] = [
-    { value: "grid", icon: "grid_view", label: "Grid" },
-    { value: "list", icon: "view_agenda", label: "List" },
+    { value: "grid", icon: "grid_view", label: t("Grid") },
+    { value: "list", icon: "view_agenda", label: t("List") },
   ];
 
   return (
@@ -55,7 +56,7 @@ function LayoutSwitch({ value, onChange }: { value: Layout; onChange: (v: Layout
             onChange(o.value);
           }}
           accessibilityRole="tab"
-          accessibilityLabel={`${o.label} view`}
+          accessibilityLabel={t("{{label}} view", { label: o.label })}
           accessibilityState={{ selected: o.value === value }}
           hitSlop={4}
           style={{ width: 40, alignItems: "center", justifyContent: "center" }}
@@ -105,10 +106,10 @@ export default function Favorites() {
             }}
           >
             <Txt variant={editing ? "title" : "titleLg"} accessibilityRole="header">
-              {editing ? "Edit favorites" : "Favorites"}
+              {editing ? t("Edit favorites") : t("Favorites")}
             </Txt>
             {editing ? (
-              <Button label="Done" variant="signal" height={40} onPress={() => setEditing(false)} />
+              <Button label={t("Done")} variant="signal" height={40} onPress={() => setEditing(false)} />
             ) : stations.length > 0 ? (
               <LayoutSwitch value={layout} onChange={setLayout} />
             ) : null}
@@ -116,13 +117,13 @@ export default function Favorites() {
 
           {editing ? (
             <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 8, lineHeight: 20 }}>
-              Drag to reorder. Order is saved on this device.
+              {t("Drag to reorder. Order is saved on this device.")}
             </Txt>
           ) : (
             <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Icon name="smartphone" size={16} color={colors.inkSoft} />
               <Txt variant="meta" color={colors.inkSoft}>
-                Saved on this device
+                {t("Saved on this device")}
               </Txt>
             </View>
           )}
@@ -152,13 +153,13 @@ export default function Favorites() {
                   <Icon name="favorite" size={26} color="#AE316E" filled />
                 </View>
                 <Txt variant="titleSm" style={{ marginTop: 18 }}>
-                  Save stations for one-tap listening.
+                  {t("Save stations for one-tap listening.")}
                 </Txt>
                 <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 6 }}>
-                  Tap the heart on any station and it becomes a preset here.
+                  {t("Tap the heart on any station and it becomes a preset here.")}
                 </Txt>
                 <Button
-                  label="Browse stations"
+                  label={t("Browse stations")}
                   icon="explore"
                   height={52}
                   onPress={() => router.push("/browse")}
@@ -188,7 +189,7 @@ export default function Favorites() {
         {!editing && stations.length > 0 ? (
           <Rise index={6} style={{ marginTop: 18, alignSelf: "flex-start" }}>
             <Button
-              label="Edit favorites"
+              label={t("Edit favorites")}
               icon="edit"
               variant="outline"
               height={44}
@@ -213,8 +214,8 @@ export default function Favorites() {
             <ActionRow
               icon="download_done"
               tone="violet"
-              title="Recordings"
-              subtitle={`${recordings.length} saved · ${(totalRecordingBytes(recordings) / 1_000_000).toFixed(1)} MB · Available offline`}
+              title={t("Recordings")}
+              subtitle={t("{{count}} saved · {{value}} MB · Available offline", { count: recordings.length, value: (totalRecordingBytes(recordings) / 1_000_000).toFixed(1) })}
               divider={false}
               onPress={() => router.push("/recordings")}
             />

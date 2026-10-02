@@ -39,6 +39,7 @@ import { useReport } from "@/stores/report";
 import { springs, timing } from "@/theme/motion";
 import { stationArt } from "@/theme/station-art";
 import { GUTTER, colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 function titleCase(value: string): string {
   return value.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
@@ -143,11 +144,11 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
   return (
     <Screen>
       <View style={{ height: 60, flexDirection: "row", alignItems: "center", paddingHorizontal: 12 }}>
-        <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+        <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
         <View style={{ flex: 1 }} />
         <IconButton
           icon="ios_share"
-          accessibilityLabel={`Share ${station.name}`}
+          accessibilityLabel={t("Share {{name}}", { name: station.name })}
           onPress={() => void shareStation(station)}
         />
       </View>
@@ -182,14 +183,14 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
         </Rise>
         <Rise index={2}>
           <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10 }}>
-            {copy.detail}
+            {t(copy.detail)}
           </Txt>
         </Rise>
 
         <Rise index={3} style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
           {locked ? (
             <Button
-              label="Browse alternatives"
+              label={t("Browse alternatives")}
               variant="signal"
               height={52}
               grow
@@ -197,7 +198,7 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
             />
           ) : (
             <Button
-              label="Retry"
+              label={t("Retry")}
               icon="refresh"
               variant="signal"
               height={52}
@@ -207,7 +208,7 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
           )}
           {station.homepage ? (
             <Button
-              label="Website"
+              label={t("Website")}
               icon="open_in_new"
               variant="outline"
               height={52}
@@ -215,7 +216,7 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
             />
           ) : (
             <Button
-              label="Report"
+              label={t("Report")}
               icon="flag"
               variant="outline"
               height={52}
@@ -225,7 +226,7 @@ function UnavailableStation({ station, error }: { station: Station; error: Playb
         </Rise>
 
         <Rise index={4} style={{ marginTop: 26 }}>
-          <SectionHeader title={tag ? `Live ${titleCase(tag)} you can play` : "Stations you can play"} />
+          <SectionHeader title={tag ? t("Live {{tag}} you can play", { tag: titleCase(tag) }) : t("Stations you can play")} />
         </Rise>
         <View style={{ marginTop: 4 }}>
           {alternatives.loading && !alternatives.data ? (
@@ -270,7 +271,7 @@ export default function StationDetail() {
     return (
       <Screen>
         <View style={{ height: 60, justifyContent: "center", paddingHorizontal: 12 }}>
-          <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+          <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
         </View>
         <View style={{ paddingHorizontal: GUTTER, gap: 14 }}>
           {fetched.loading ? (
@@ -281,12 +282,12 @@ export default function StationDetail() {
             </>
           ) : (
             <>
-              <Txt variant="displaySm">This station isn’t in the directory any more.</Txt>
+              <Txt variant="displaySm">{t("This station isn’t in the directory any more.")}</Txt>
               <Txt variant="body" color={colors.inkSoft}>
-                It may have been removed or renamed. Search will find it if it’s still on air.
+                {t("It may have been removed or renamed. Search will find it if it’s still on air.")}
               </Txt>
               <Button
-                label="Search stations"
+                label={t("Search stations")}
                 icon="search"
                 height={52}
                 onPress={() => router.navigate({ pathname: "/search", params: { focus: String(Date.now()) } })}
@@ -314,7 +315,9 @@ export default function StationDetail() {
     .map((part) => titleCase(part!))
     .join(" · ");
   const stream = [station.codec, station.bitrate ? `${station.bitrate} kbps` : ""].filter(Boolean).join(" · ");
-  const shortName = station.name.length > 18 ? "station" : station.name;
+  // Long names would overflow the button, so it just says "Play station".
+  const playLabel =
+    station.name.length > 18 ? t("Play station") : t("Play {{name}}", { name: station.name });
 
   const togglePlay = () => {
     const player = usePlayer.getState();
@@ -337,7 +340,7 @@ export default function StationDetail() {
             icon="arrow_back"
             color={colors.onInk}
             background="rgba(255,255,255,0.2)"
-            accessibilityLabel="Back"
+            accessibilityLabel={t("Back")}
             onPress={() => router.back()}
           />
           <View style={{ flex: 1 }} />
@@ -345,7 +348,7 @@ export default function StationDetail() {
             icon="ios_share"
             color={colors.onInk}
             background="rgba(255,255,255,0.2)"
-            accessibilityLabel={`Share ${station.name}`}
+            accessibilityLabel={t("Share {{name}}", { name: station.name })}
             onPress={() => share(station, playing ? nowPlaying : null)}
           />
           <View ref={moreRef} collapsable={false}>
@@ -353,7 +356,7 @@ export default function StationDetail() {
               icon="more_vert"
               color={colors.onInk}
               background="rgba(255,255,255,0.2)"
-              accessibilityLabel="More actions"
+              accessibilityLabel={t("More actions")}
               onPress={() =>
                 moreRef.current?.measureInWindow((x, y, width, height) => {
                   haptics.tap();
@@ -399,7 +402,7 @@ export default function StationDetail() {
           <Rise style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.onInk }} />
             <Txt variant="captionMedium" color={colors.onInk} numberOfLines={1} style={{ opacity: 0.9 }}>
-              {unavailable ? "OFFLINE RIGHT NOW" : locality ? `LIVE NOW · ${locality.toUpperCase()}` : "LIVE NOW"}
+              {unavailable ? t("OFFLINE RIGHT NOW") : locality ? t("LIVE NOW · {{locality}}", { locality: locality.toUpperCase() }) : t("LIVE NOW")}
             </Txt>
           </Rise>
           <Rise index={1} style={{ marginTop: 12 }}>
@@ -448,7 +451,7 @@ export default function StationDetail() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <Txt variant="caption" color={colors.inkSoft} numberOfLines={1} style={{ flexShrink: 1 }}>
-              {stream ? `Online stream · ${stream}` : "Online stream"}
+              {stream ? t("Online stream · {{stream}}", { stream }) : t("Online stream")}
             </Txt>
             <View
               style={{
@@ -470,7 +473,7 @@ export default function StationDetail() {
                 }}
               />
               <Txt variant="captionMedium" color={unavailable ? "#AC1922" : colors.okDeep}>
-                {unavailable ? "Offline" : "Available"}
+                {unavailable ? t("Offline") : t("Available")}
               </Txt>
             </View>
           </View>
@@ -478,7 +481,7 @@ export default function StationDetail() {
           <Rise index={2} style={{ marginTop: 20 }}>
             <Button
               label={
-                loading ? "Connecting…" : playing ? "Pause" : playback === "idle" ? `Play ${shortName}` : "Resume"
+                loading ? t("Connecting…") : playing ? t("Pause") : playback === "idle" ? playLabel : t("Resume")
               }
               icon={loading ? "progress_activity" : playing ? "pause" : "play_arrow"}
               iconFilled
@@ -486,7 +489,7 @@ export default function StationDetail() {
               // Locked while connecting, so a second tap can't start a second stream.
               disabled={loading}
               onPress={togglePlay}
-              accessibilityLabel={playing ? `Pause ${station.name}` : `Play ${station.name}`}
+              accessibilityLabel={playing ? t("Pause {{name}}", { name: station.name }) : t("Play {{name}}", { name: station.name })}
             />
           </Rise>
 
@@ -495,7 +498,7 @@ export default function StationDetail() {
               index={0}
               icon="favorite"
               filled={isFavorite}
-              label={isFavorite ? "Saved" : "Favorite"}
+              label={isFavorite ? t("Saved") : t("Favorite")}
               background="#FFE7F1"
               color={HEART_COLOR}
               onPress={() => useFavorites.getState().toggle(station)}
@@ -505,7 +508,7 @@ export default function StationDetail() {
                 index={1}
                 icon={recordingThis ? "stop" : "radio_button_checked"}
                 filled={recordingThis}
-                label={recordingThis ? "Stop" : "Record"}
+                label={recordingThis ? t("Stop") : t("Record")}
                 background={colors.alertSoft}
                 color="#644FB1"
                 onPress={() => {
@@ -520,7 +523,7 @@ export default function StationDetail() {
             <ActionTile
               index={2}
               icon="bedtime"
-              label="Timer"
+              label={t("Timer")}
               background="#EEECFF"
               color={colors.amber}
               onPress={() => router.push("/sleep-timer")}
@@ -528,7 +531,7 @@ export default function StationDetail() {
             <ActionTile
               index={3}
               icon="flag"
-              label="Report"
+              label={t("Report")}
               background={colors.alertSoft}
               color={colors.signal}
               onPress={() => useReport.getState().open(station)}
@@ -537,7 +540,7 @@ export default function StationDetail() {
               <ActionTile
                 index={4}
                 icon="open_in_new"
-                label="Website"
+                label={t("Website")}
                 background={colors.signalSoft}
                 color={colors.signal}
                 onPress={() => void Linking.openURL(station.homepage!).catch(() => {})}
@@ -549,8 +552,8 @@ export default function StationDetail() {
             <Icon name="radio_button_checked" size={17} color={recordable ? "#AC1922" : colors.inkFaint} />
             <Txt variant="captionMedium" color={recordable ? "#AC1922" : colors.inkFaint} style={{ flex: 1 }}>
               {recordable
-                ? "Offline recording available for this station."
-                : "This station’s stream can’t be saved for offline listening."}
+                ? t("Offline recording available for this station.")
+                : t("This station’s stream can’t be saved for offline listening.")}
             </Txt>
           </Rise>
 
@@ -565,23 +568,23 @@ export default function StationDetail() {
               gap: 6,
             }}
           >
-            <Eyebrow>On air now</Eyebrow>
+            <Eyebrow>{t("On air now")}</Eyebrow>
             <Txt variant="section" numberOfLines={2} style={{ marginTop: 2, lineHeight: 21 }}>
-              {playing && nowPlaying ? nowPlaying : "Live radio"}
+              {playing && nowPlaying ? nowPlaying : t("Live radio")}
             </Txt>
             <Txt variant="meta" color={colors.inkSoft}>
               {playing
                 ? nowPlaying
-                  ? "From the station’s own stream"
-                  : "Now playing information unavailable."
-                : "What’s on air shows here once the station is playing."}
+                  ? t("From the station’s own stream")
+                  : t("Now playing information unavailable.")
+                : t("What’s on air shows here once the station is playing.")}
             </Txt>
           </Rise>
 
           <Rise index={7} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="info" size={16} color={colors.inkFaint} />
             <Txt variant="caption" color={colors.inkFaint}>
-              Online stream · Internet connection required
+              {t("Online stream · Internet connection required")}
             </Txt>
           </Rise>
         </ScrollView>

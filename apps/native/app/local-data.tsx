@@ -20,39 +20,40 @@ import { useRecents } from "@/stores/recents";
 import { totalRecordingBytes, useRecordings } from "@/stores/recordings";
 import { useToast } from "@/stores/toast";
 import { GUTTER, colors, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 type Target = "favorites" | "recents" | "recordings" | "searches" | "last" | "everything";
 
 const CONFIRM: Record<Target, { title: string; body: string; action: string }> = {
   favorites: {
-    title: "Clear all Favorites?",
-    body: "Every saved station is removed from this phone. Your Recents are not affected.",
-    action: "Clear Favorites",
+    title: msg("Clear all Favorites?"),
+    body: msg("Every saved station is removed from this phone. Your Recents are not affected."),
+    action: msg("Clear Favorites"),
   },
   recents: {
-    title: "Clear Recents?",
-    body: "The list of stations you’ve played is removed from this phone. Favorites are not affected.",
-    action: "Clear Recents",
+    title: msg("Clear Recents?"),
+    body: msg("The list of stations you’ve played is removed from this phone. Favorites are not affected."),
+    action: msg("Clear Recents"),
   },
   recordings: {
-    title: "Delete all recordings?",
-    body: "Every saved recording and its audio file is deleted from this phone.",
-    action: "Delete recordings",
+    title: msg("Delete all recordings?"),
+    body: msg("Every saved recording and its audio file is deleted from this phone."),
+    action: msg("Delete recordings"),
   },
   searches: {
-    title: "Clear recent searches?",
-    body: "Your search history is removed from this phone.",
-    action: "Clear searches",
+    title: msg("Clear recent searches?"),
+    body: msg("Your search history is removed from this phone."),
+    action: msg("Clear searches"),
   },
   last: {
-    title: "Forget the last station?",
-    body: "Playback stops and Home will no longer offer to resume it.",
-    action: "Forget station",
+    title: msg("Forget the last station?"),
+    body: msg("Playback stops and Home will no longer offer to resume it."),
+    action: msg("Forget station"),
   },
   everything: {
-    title: "Clear everything on this phone?",
-    body: "This removes Favorites, Recents, the last station, any sleep timer, all recordings and recent searches. It can’t be undone. Stations in the directory are not affected.",
-    action: "Clear everything",
+    title: msg("Clear everything on this phone?"),
+    body: msg("This removes Favorites, Recents, the last station, any sleep timer, all recordings and recent searches. It can’t be undone. Stations in the directory are not affected."),
+    action: msg("Clear everything"),
   },
 };
 
@@ -101,12 +102,12 @@ function DataRow({
         </Txt>
       </View>
       <Button
-        label="Clear"
+        label={t("Clear")}
         variant="outline"
         height={38}
         disabled={disabled}
         onPress={onClear}
-        accessibilityLabel={`Clear ${label}`}
+        accessibilityLabel={t("Clear {{label}}", { label })}
       />
     </View>
   );
@@ -158,7 +159,7 @@ export default function LocalData() {
     }
     haptics.warning();
     setTarget(null);
-    useToast.getState().show({ message: "Removed from this phone", icon: "check_circle" });
+    useToast.getState().show({ message: t("Removed from this phone"), icon: "check_circle" });
   };
 
   const copy = CONFIRM[shown];
@@ -171,15 +172,14 @@ export default function LocalData() {
         contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: 8, paddingBottom: insets.bottom + 24 }}
       >
         <Rise style={{ flexDirection: "row", alignItems: "center", gap: 6, marginLeft: -10 }}>
-          <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+          <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
           <Txt variant="titleLg" accessibilityRole="header" style={{ fontSize: 28 }}>
-            Local data
+            {t("Local data")}
           </Txt>
         </Rise>
         <Rise index={1}>
           <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 6, lineHeight: 20 }}>
-            Everything here lives only on this phone. There is no account and nothing is synced, so
-            removing it here removes it for good.
+            {t("Everything here lives only on this phone. There is no account and nothing is synced, so removing it here removes it for good.")}
           </Txt>
         </Rise>
 
@@ -196,40 +196,40 @@ export default function LocalData() {
         >
           <DataRow
             icon="favorite"
-            label="Favorites"
-            detail={`${favorites} saved`}
+            label={t("Favorites")}
+            detail={t("{{number}} saved", { number: favorites })}
             disabled={favorites === 0}
             onClear={() => ask("favorites")}
           />
           <DataRow
             icon="history"
-            label="Recents"
-            detail={`${recents} played`}
+            label={t("Recents")}
+            detail={t("{{number}} played", { number: recents })}
             disabled={recents === 0}
             onClear={() => ask("recents")}
           />
           <DataRow
             icon="radio"
-            label="Last station"
+            label={t("Last station")}
             detail={lastStation ? lastStation.name : "None"}
             disabled={!lastStation}
             onClear={() => ask("last")}
           />
           <DataRow
             icon="download_done"
-            label="Recordings"
+            label={t("Recordings")}
             detail={
               recordings.length === 0
-                ? "None"
-                : `${recordings.length} saved · ${formatBytes(totalRecordingBytes(recordings))}`
+                ? t("None")
+                : t("{{count}} saved · {{size}}", { count: recordings.length, size: formatBytes(totalRecordingBytes(recordings)) })
             }
             disabled={recordings.length === 0}
             onClear={() => ask("recordings")}
           />
           <DataRow
             icon="search"
-            label="Recent searches"
-            detail={`${searches} saved`}
+            label={t("Recent searches")}
+            detail={t("{{number}} saved", { number: searches })}
             disabled={searches === 0}
             onClear={() => ask("searches")}
             last
@@ -238,7 +238,7 @@ export default function LocalData() {
 
         <Rise index={3} style={{ marginTop: 22 }}>
           <Button
-            label="Clear everything"
+            label={t("Clear everything")}
             icon="delete"
             variant="alertOutline"
             height={52}
@@ -246,21 +246,21 @@ export default function LocalData() {
             onPress={() => ask("everything")}
           />
           <Txt variant="caption" color={colors.inkFaint} style={{ marginTop: 12, lineHeight: 19 }}>
-            Your settings stay as they are. Stations in the directory are never deleted.
+            {t("Your settings stay as they are. Stations in the directory are never deleted.")}
           </Txt>
         </Rise>
       </ScrollView>
 
-      <Sheet visible={target !== null} onClose={() => setTarget(null)} accessibilityLabel={copy.title}>
+      <Sheet visible={target !== null} onClose={() => setTarget(null)} accessibilityLabel={t(copy.title)}>
         <Txt variant="titleSm" accessibilityRole="header">
-          {copy.title}
+          {t(copy.title)}
         </Txt>
         <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 10 }}>
-          {copy.body}
+          {t(copy.body)}
         </Txt>
         <View style={{ flexDirection: "row", gap: 10, marginTop: 22, marginBottom: 8 }}>
-          <Button label="Cancel" variant="outline" height={52} onPress={() => setTarget(null)} />
-          <Button label={copy.action} variant="alert" height={52} grow onPress={confirm} />
+          <Button label={t("Cancel")} variant="outline" height={52} onPress={() => setTarget(null)} />
+          <Button label={t(copy.action)} variant="alert" height={52} grow onPress={confirm} />
         </View>
       </Sheet>
     </Screen>

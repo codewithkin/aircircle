@@ -17,6 +17,7 @@ import { usePlayer } from "@/stores/player";
 import { totalRecordingBytes, useRecordings } from "@/stores/recordings";
 import { useToast } from "@/stores/toast";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 function RecordingRow({ recording, index }: { recording: Recording; index: number }) {
   const router = useRouter();
@@ -41,8 +42,8 @@ function RecordingRow({ recording, index }: { recording: Recording; index: numbe
         }}
         pressedScale={0.985}
         accessibilityRole="button"
-        accessibilityLabel={`Recording of ${recording.stationName}, ${formatDay(recording.recordedAt)}, ${formatDuration(recording.durationMs)}`}
-        accessibilityHint="Plays the saved recording."
+        accessibilityLabel={t("Recording of {{name}}, {{day}}, {{duration}}", { name: recording.stationName, day: formatDay(recording.recordedAt), duration: formatDuration(recording.durationMs) })}
+        accessibilityHint={t("Plays the saved recording.")}
         style={{
           borderRadius: 22,
           backgroundColor: colors.card,
@@ -97,7 +98,7 @@ function RecordingRow({ recording, index }: { recording: Recording; index: numbe
               color={broken ? colors.alert : colors.ink}
               style={{ fontFamily: fonts.sansSemibold, fontSize: 11 }}
             >
-              {broken ? "Unavailable" : playing ? "Playing" : "Recorded"}
+              {broken ? t("Unavailable") : playing ? t("Playing") : t("Recorded")}
             </Txt>
           </View>
         </View>
@@ -108,17 +109,17 @@ function RecordingRow({ recording, index }: { recording: Recording; index: numbe
           color={colors.signal}
           state={loading ? "loading" : playing ? "pause" : "play"}
           onPress={play}
-          accessibilityLabel={playing ? "Pause recording" : "Play recording"}
+          accessibilityLabel={playing ? t("Pause recording") : t("Play recording")}
         />
         <IconButton
           icon="delete"
           size={40}
           iconSize={20}
           color={colors.inkSoft}
-          accessibilityLabel={`Delete recording of ${recording.stationName}`}
+          accessibilityLabel={t("Delete recording of {{name}}", { name: recording.stationName })}
           onPress={() => {
             useRecordings.getState().remove(recording.id);
-            useToast.getState().show({ message: "Recording deleted", icon: "delete" });
+            useToast.getState().show({ message: t("Recording deleted"), icon: "delete" });
           }}
         />
       </PressableScale>
@@ -143,9 +144,9 @@ export default function Recordings() {
         }}
       >
         <Rise style={{ flexDirection: "row", alignItems: "center", gap: 6, marginLeft: -10 }}>
-          <IconButton icon="arrow_back" accessibilityLabel="Back" onPress={() => router.back()} />
+          <IconButton icon="arrow_back" accessibilityLabel={t("Back")} onPress={() => router.back()} />
           <Txt variant="titleLg" accessibilityRole="header" style={{ fontSize: 28 }}>
-            Recordings
+            {t("Recordings")}
           </Txt>
         </Rise>
 
@@ -153,17 +154,17 @@ export default function Recordings() {
           <Icon name="smartphone" size={16} color={colors.inkSoft} />
           <Txt variant="meta" color={colors.inkSoft}>
             {recordings.length === 0
-              ? "Available offline · Saved on this device"
-              : `Available offline · ${formatBytes(totalRecordingBytes(recordings))} on this device`}
+              ? t("Available offline · Saved on this device")
+              : t("Available offline · {{size}} on this device", { size: formatBytes(totalRecordingBytes(recordings)) })}
           </Txt>
         </Rise>
 
         <View style={{ marginTop: 20, gap: 10 }}>
           {recordings.length === 0 ? (
             <Rise index={2}>
-              <Txt variant="titleSm">Nothing recorded yet.</Txt>
+              <Txt variant="titleSm">{t("Nothing recorded yet.")}</Txt>
               <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 6 }}>
-                Tap Record while a station is playing to save it for offline listening.
+                {t("Tap Record while a station is playing to save it for offline listening.")}
               </Txt>
             </Rise>
           ) : (
