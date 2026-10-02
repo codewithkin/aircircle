@@ -72,11 +72,23 @@
           "locationWhenInUsePermission": "Aircircle uses your approximate location to find radio stations near you."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9c262d62-aa29-4bb4-97b1-21ac7fd0493c"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9c262d62-aa29-4bb4-97b1-21ac7fd0493c"
     }
   }
 }
