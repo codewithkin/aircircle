@@ -19,6 +19,7 @@ import { rememberStation, stationSubtitle } from "@/lib/station";
 import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
 import { useQuickActions } from "@/stores/quick-actions";
+import { useRecents } from "@/stores/recents";
 import type { AnchorFrame } from "@/stores/quick-actions";
 import { useReport } from "@/stores/report";
 import { springs, timing } from "@/theme/motion";
@@ -26,7 +27,7 @@ import { colors, shadows } from "@/theme/tokens";
 import type { Station } from "@/lib/types";
 
 const MENU_WIDTH = 272;
-const MENU_HEIGHT = 322;
+const MENU_HEIGHT = 370;
 const EDGE = 20;
 
 function MenuItem({
@@ -103,6 +104,9 @@ export function QuickActions() {
 
   const isFavorite = useFavorites((s) =>
     shown ? s.stations.some((f) => f.stationuuid === shown.station.stationuuid) : false,
+  );
+  const isRecent = useRecents((s) =>
+    shown ? s.stations.some((r) => r.stationuuid === shown.station.stationuuid) : false,
   );
   const current = usePlayer((s) => s.station);
   const status = usePlayer((s) => s.status);
@@ -256,16 +260,24 @@ export function QuickActions() {
             label="Share"
             onPress={run(() => void shareStation(station))}
           />
-          {isStopped ? (
+          {isRecent ? (
             <MenuItem
               index={4}
+              icon="history"
+              label="Remove from Recents"
+              onPress={run(() => useRecents.getState().remove(station.stationuuid))}
+            />
+          ) : null}
+          {isStopped ? (
+            <MenuItem
+              index={5}
               icon="close"
               label="Forget this station"
               onPress={run(() => usePlayer.getState().dismiss())}
             />
           ) : (
             <MenuItem
-              index={4}
+              index={5}
               icon="flag"
               color="#AC1922"
               label="Report"
