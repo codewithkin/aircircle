@@ -23,6 +23,10 @@ type Settings = {
   defaultSleepMinutes: number;
   /** Data saver prefers a lower-bitrate stream when a station offers one. */
   streamQuality: StreamQuality;
+  /** Send anonymous usage signals. No names, searches or locations. */
+  analyticsEnabled: boolean;
+  /** The app's language; null follows the device. */
+  language: string | null;
 };
 
 const DEFAULTS: Settings = {
@@ -34,6 +38,8 @@ const DEFAULTS: Settings = {
   resumeAfterInterruption: "ask",
   defaultSleepMinutes: 30,
   streamQuality: "auto",
+  analyticsEnabled: true,
+  language: null,
 };
 
 type SettingsActions = {
