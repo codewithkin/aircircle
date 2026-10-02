@@ -15,7 +15,8 @@ import { scheduleOnRN } from "react-native-worklets";
 
 import { Coach } from "@/components/player/coach";
 import { ControlBar } from "@/components/player/control-bar";
-import { NowPlayingArt } from "@/components/player/now-playing-art";
+import { OutputChip } from "@/components/player/output-chip";
+import { SwipeableArt } from "@/components/player/swipeable-art";
 import { OnAirCard, RecordedCard, RecordingCard } from "@/components/player/now-playing-cards";
 import {
   ConnectingView,
@@ -36,6 +37,7 @@ import { Txt } from "@/components/ui/txt";
 import { canRecord } from "@/lib/recording/eligibility";
 import { RECORDING_FAILURE_MESSAGES } from "@/lib/recording/types";
 import { stationSubtitle } from "@/lib/station";
+import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
 import { useRecordings } from "@/stores/recordings";
 import { useToast } from "@/stores/toast";
@@ -101,6 +103,10 @@ export default function NowPlaying() {
   const position = usePlayer((s) => s.position);
   const pauseReason = usePlayer((s) => s.pauseReason);
   const hasAudio = usePlayer((s) => s.hasAudio);
+  const usingFallback = usePlayer((s) => s.usingFallback);
+  const isFavorite = useFavorites((s) =>
+    station ? s.stations.some((f) => f.stationuuid === station.stationuuid) : false,
+  );
 
   const activeRecording = useRecordings((s) => s.active);
   const lastSaved = useRecordings((s) => s.lastSaved);
@@ -223,13 +229,15 @@ export default function NowPlaying() {
                     {recording ? "Recorded" : "Live radio"}
                   </Txt>
                   <Txt variant="label" numberOfLines={1}>
-                    {recording ? "Saved on this device" : "Aircircle"}
+                    {recording ? "Saved on this device" : isFavorite ? "From Favorites" : "Aircircle"}
                   </Txt>
                 </>
               )}
             </View>
 
-            <View style={{ flex: 1, alignItems: "flex-end" }}>{showRecord ? <RecordPill /> : null}</View>
+            <View style={{ flex: 1, alignItems: "flex-end" }}>
+              {view === "connecting" ? null : <OutputChip translucent={view !== "player"} />}
+            </View>
           </View>
 
           {/* Keyed by state so each one arrives with its own entrance. */}
@@ -245,11 +253,10 @@ export default function NowPlaying() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: 12, paddingBottom: 12, flexGrow: 1 }}
               >
-                <View style={{ alignSelf: "center" }}>
-                  <NowPlayingArt station={station} size={272} playing={isPlaying} />
-                </View>
+                <SwipeableArt station={station} size={272} playing={isPlaying} />
 
-                <Rise index={1} style={{ marginTop: 34, gap: 8 }}>
+                <Rise index={1} style={{ marginTop: 30, flexDirection: "row", alignItems: "center", gap: 12 }}>
+                 <View style={{ flex: 1, gap: 8 }}>
                   <View style={{ flexDirection: "row", gap: 8 }}>
                     <View
                       style={{
@@ -295,6 +302,8 @@ export default function NowPlaying() {
                             ? "Loading"
                             : pauseReason === "external"
                               ? "Paused by your phone"
+                              : pauseReason === "route"
+                                ? "Output disconnected"
                               : status === "stopped"
                                 ? "Stopped"
                                 : "Paused"}
@@ -322,7 +331,29 @@ export default function NowPlaying() {
                       </Txt>
                     </View>
                   ) : null}
+                 </View>
+                 {showRecord ? <RecordPill /> : null}
                 </Rise>
+
+                {/* Headphones or Bluetooth went away: say so, and wait to be asked. */}
+                {pauseReason === "route" && status === "paused" ? (
+                  <Rise style={{ marginTop: 14 }}>
+                    <View
+                      style={{
+                        borderRadius: 18,
+                        backgroundColor: colors.amberSoft,
+                        padding: 14,
+                        flexDirection: "row",
+                        gap: 10,
+                      }}
+                    >
+                      <Icon name="headphones" size={20} color={colors.amber} />
+                      <Txt variant="meta" color={colors.amber} accessibilityLiveRegion="polite" style={{ flex: 1 }}>
+                        Playback paused — audio route disconnected. Press Play to continue on this phone.
+                      </Txt>
+                    </View>
+                  </Rise>
+                ) : null}
 
                 <Rise index={2} style={{ marginTop: 20 }}>
                   {recording ? (
@@ -394,16 +425,32 @@ export default function NowPlaying() {
                       </Txt>
                     </View>
                   ) : (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                      <Icon
-                        name={isPlaying ? "check_circle" : "info"}
-                        size={18}
-                        color={isPlaying ? colors.ok : colors.inkSoft}
-                      />
-                      <Txt variant="label" color={colors.inkSoft}>
-                        {isPlaying ? "Stream stable" : "Online stream"}
-                      </Txt>
-                    </View>
+                    usingFallback ? (
+                      // An alternate stream is in use: say so, and offer the way back.
+                      <PressableScale
+                        onPress={() => void usePlayer.getState().usePrimaryStream()}
+                        hitSlop={12}
+                        accessibilityRole="button"
+                        accessibilityLabel="Playing an alternate stream. Switch back to the main stream."
+                        style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                      >
+                        <Icon name="swap_horiz" size={18} color={colors.amber} />
+                        <Txt variant="label" color={colors.amber}>
+                          Alternate stream · Use main
+                        </Txt>
+                      </PressableScale>
+                    ) : (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Icon
+                          name={isPlaying ? "check_circle" : "info"}
+                          size={18}
+                          color={isPlaying ? colors.ok : colors.inkSoft}
+                        />
+                        <Txt variant="label" color={colors.inkSoft}>
+                          {isPlaying ? "Stream stable" : "Online stream"}
+                        </Txt>
+                      </View>
+                    )
                   )}
                   {!recording && station.homepage ? (
                     <PressableScale

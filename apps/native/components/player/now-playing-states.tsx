@@ -39,6 +39,7 @@ const STEPS = ["Connecting", "Buffering", "Playing"] as const;
  */
 export function ConnectingView({ station, status }: { station: Station; status: PlaybackStatus }) {
   const reduced = useReducedMotion();
+  const usingFallback = usePlayer((s) => s.usingFallback);
   const current = status === "buffering" ? 1 : 0;
   const subtitle = stationSubtitle(station);
 
@@ -86,7 +87,11 @@ export function ConnectingView({ station, status }: { station: Station; status: 
           accessibilityLiveRegion="polite"
           style={{ textAlign: "center" }}
         >
-          {status === "buffering" ? "Waiting for the live stream…" : `Connecting to ${station.name}…`}
+          {usingFallback
+            ? "Trying an alternate stream…"
+            : status === "buffering"
+              ? "Waiting for the live stream…"
+              : `Connecting to ${station.name}…`}
         </Txt>
       </Rise>
       {subtitle ? (
