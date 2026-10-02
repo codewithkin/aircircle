@@ -1,1 +1,52 @@
 @import "@aircircle/ui/globals.css";
+
+/*
+ * Web-only brand tokens.
+ *
+ * The app's "Soft Air" palette lives in apps/native/global.css, where it feeds
+ * Uniwind. These mirror the same values as Tailwind utilities so the site can
+ * be styled with classNames — the hexes below are the app's own, not new
+ * inventions. The utility names (fg, subtle, line, brand) match the sister
+ * projects' sites so the legal pages stay structurally identical across them.
+ */
+@theme inline {
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Surfaces. */
+  --color-canvas: #f5f6f8;
+  --color-card: #ffffff;
+  --color-line: #e3e5ea;
+  --color-fg: #101114;
+  --color-subtle: #6b7080;
+  --color-dim: #8b90a0;
+
+  /* `brand` is the app's signal blue: links, markers and the wordmark. */
+  --color-brand: #006eb3;
+  --color-brand-bright: #004e95;
+  --color-brand-soft: #ddf2ff;
+
+  /* The red dot that means a station is on air. */
+  --color-live: #e64343;
+
+  /* The night surface the sleep timer uses. */
+  --color-night: #0e1424;
+  --color-night-accent: #90cdf1;
+  --color-night-text: #9ba1b0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* The site is always light, like the app it describes. */
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-fg);
+}
+
+::selection {
+  background-color: var(--color-brand-soft);
+  color: var(--color-fg);
+}
