@@ -10,8 +10,11 @@ import { Uniwind } from "uniwind";
 
 import { QuickActions } from "@/components/station/quick-actions";
 import { ToastHost } from "@/components/ui/toast-host";
+import { startAudioRouteListener } from "@/lib/audio-route";
+import { startDataNoticeService } from "@/lib/playback/data-notice";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
 import { startRecordingGuard } from "@/lib/recording/recording-guard";
+import { releaseFeedbackSounds } from "@/lib/sounds";
 import { useFavorites } from "@/stores/favorites";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { startNowPlayingService } from "@/stores/now-playing";
@@ -55,6 +58,8 @@ export default function Layout() {
     const unsubSleepTimer = startSleepTimerService();
     const unsubRecordingGuard = startRecordingGuard();
     const unsubNowPlaying = startNowPlayingService();
+    const unsubDataNotice = startDataNoticeService();
+    const unsubAudioRoute = startAudioRouteListener();
 
     return () => {
       unsubNetwork();
@@ -62,6 +67,9 @@ export default function Layout() {
       unsubSleepTimer();
       unsubRecordingGuard();
       unsubNowPlaying();
+      unsubDataNotice();
+      unsubAudioRoute();
+      releaseFeedbackSounds();
       releaseAllPlayers();
     };
   }, []);

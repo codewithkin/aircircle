@@ -113,6 +113,8 @@ export default function Settings() {
 
   const reduceMotion = useSettings((s) => s.reduceMotion);
   const hapticsEnabled = useSettings((s) => s.hapticsEnabled);
+  const soundFeedbackEnabled = useSettings((s) => s.soundFeedbackEnabled);
+  const mobileDataNotice = useSettings((s) => s.mobileDataNotice);
   const defaultSleepMinutes = useSettings((s) => s.defaultSleepMinutes);
   const update = useSettings((s) => s.update);
 
@@ -223,11 +225,18 @@ export default function Settings() {
                 accessibilityLabel="Reduce motion"
               />
             </Row>
-            <Row label="Haptic feedback" divider={false}>
+            <Row label="Haptic feedback">
               <Toggle
                 value={hapticsEnabled}
                 onChange={(v) => update({ hapticsEnabled: v })}
                 accessibilityLabel="Haptic feedback"
+              />
+            </Row>
+            <Row label="Play and pause sounds" divider={false}>
+              <Toggle
+                value={soundFeedbackEnabled}
+                onChange={(v) => update({ soundFeedbackEnabled: v })}
+                accessibilityLabel="Play and pause sounds"
               />
             </Row>
           </View>
@@ -235,7 +244,16 @@ export default function Settings() {
 
         <Rise index={4} style={{ marginTop: 22 }}>
           <Eyebrow>Data & network</Eyebrow>
-          <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 12, lineHeight: 20 }}>
+          <View style={{ marginTop: 4 }}>
+            <Row label="Tell me when on mobile data" divider={false}>
+              <Toggle
+                value={mobileDataNotice}
+                onChange={(v) => update({ mobileDataNotice: v })}
+                accessibilityLabel="Tell me when playback uses mobile data"
+              />
+            </Row>
+          </View>
+          <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 8, lineHeight: 20 }}>
             Live radio streams over the internet and keeps using data while it plays in the
             background. Stations come from third-party broadcasters and may be unavailable in
             some regions.
