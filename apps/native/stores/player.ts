@@ -2,7 +2,7 @@ import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import type { AudioPlayer, AudioStatus } from "expo-audio";
 import { create } from "zustand";
 
-import { getPlayableStreamUrl } from "@/lib/api/playlist";
+import { getStreamCandidates } from "@/lib/api/playlist";
 import { getStationByUuid, sendStationClick } from "@/lib/api/radio-browser";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { backoffDelay } from "@/lib/playback/backoff";
@@ -99,6 +99,25 @@ const RETRY_BUDGET_BEFORE_AUDIO = 2;
  * first frame would let a stream that plays a second and dies retry forever.
  */
 const STABLE_AFTER_MS = 10000;
+
+/**
+ * The station's streams, best first, and which one is in use. Index 0 is the
+ * primary; anything after it is one of the broadcaster's own alternates.
+ */
+let candidates: string[] = [];
+let candidateIndex = 0;
+
+/** The stream address in use right now — what a recording should capture. */
+export function getActiveStreamUrl(): string | null {
+  return candidates[candidateIndex] ?? null;
+}
+
+/** Failures another address for the same station might get around. */
+function worthTryingAnotherStream(kind: PlaybackError["kind"]): boolean {
+  // Deliberately not region or login failures: an alternate stream must never
+  // be used to step around a restriction the broadcaster put there.
+  return kind === "stream_offline" || kind === "stale_url" || kind === "unknown";
+}
 
 /**
  * Set when the connection dropped mid-listen. Retrying on a timer while the
@@ -249,6 +268,11 @@ type PlayerState = {
    * brief re-buffer of something already playing (don't).
    */
   hasAudio: boolean;
+  /**
+   * True while playing or trying one of the station's alternate streams
+   * instead of its primary one. Screens say so, and offer the way back.
+   */
+  usingFallback: boolean;
   status: PlaybackStatus;
   pauseReason: PauseReason | null;
   error: PlaybackError | null;
@@ -280,6 +304,8 @@ type PlayerActions = {
   dismiss: () => void;
   /** "Retry now": reconnects immediately with a fresh retry budget. */
   retry: () => Promise<void>;
+  /** Goes back to the station's primary stream after a fallback was used. */
+  usePrimaryStream: () => Promise<void>;
   /** Called by the network recovery service; not for screens. */
   handleNetworkLost: () => void;
   handleNetworkRestored: () => void;
@@ -306,6 +332,20 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     const error = classifyPlaybackError(reason, useNetwork.getState().isConnected);
     const budget = hasPlayed ? RETRY_BUDGET_AFTER_AUDIO : RETRY_BUDGET_BEFORE_AUDIO;
 
+    // The stream never started, and the station has another one: try that
+    // before spending retries on an address that may simply be dead. It is
+    // the same station either way, and the screen says a fallback is in use.
+    if (
+      !hasPlayed &&
+      worthTryingAnotherStream(error.kind) &&
+      candidateIndex < candidates.length - 1
+    ) {
+      candidateIndex++;
+      set({ usingFallback: true });
+      void connect();
+      return;
+    }
+
     // Lost the connection while listening: hold the station and pick it back
     // up when the network returns. Pressing Play while already offline is not
     // this case — that fails outright so the listener knows why.
@@ -331,7 +371,16 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     wantsToPlay = false;
     attempt = 0;
     hasPlayed = false;
-    set({ status: "error", error, retryAttempt: 0, retryAt: null, hasAudio: false });
+    // The next Retry starts again from the primary stream.
+    candidateIndex = 0;
+    set({
+      status: "error",
+      error,
+      retryAttempt: 0,
+      retryAt: null,
+      hasAudio: false,
+      usingFallback: false,
+    });
   };
 
   /** If audio isn't flowing by the deadline and no error ever fired, fail anyway. */
@@ -453,7 +502,8 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         }
         streamUrl = recordingUri(recording.fileName);
       } else {
-        streamUrl = await getPlayableStreamUrl(station);
+        if (candidates.length === 0) candidates = await getStreamCandidates(station);
+        streamUrl = candidates[Math.min(candidateIndex, candidates.length - 1)];
       }
 
       // A newer attempt started while we were resolving the URL — bail
@@ -506,6 +556,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
     recording: null,
     position: 0,
     hasAudio: false,
+    usingFallback: false,
     status: "idle",
     pauseReason: null,
     error: null,
@@ -550,7 +601,9 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       attempt = 0;
       hasPlayed = false;
       needsRevalidation = false;
-      set({ station, recording: null, position: 0, hasAudio: false });
+      candidates = [];
+      candidateIndex = 0;
+      set({ station, recording: null, position: 0, hasAudio: false, usingFallback: false });
 
       // Recorded per Play press, not per connection, so automatic reconnects
       // neither reshuffle Recents nor inflate the station's click count.
@@ -581,7 +634,10 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         recording,
         position: 0,
         hasAudio: false,
+        usingFallback: false,
       });
+      candidates = [];
+      candidateIndex = 0;
 
       await connect();
     },
@@ -700,6 +756,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
         recording: null,
         position: 0,
         hasAudio: false,
+        usingFallback: false,
         status: "idle",
         pauseReason: null,
         error: null,
@@ -712,6 +769,16 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       if (!get().station) return;
       wantsToPlay = true;
       attempt = 0;
+      await connect();
+    },
+
+    usePrimaryStream: async () => {
+      if (!get().station || get().recording) return;
+      wantsToPlay = true;
+      attempt = 0;
+      hasPlayed = false;
+      candidateIndex = 0;
+      set({ usingFallback: false, hasAudio: false });
       await connect();
     },
 
