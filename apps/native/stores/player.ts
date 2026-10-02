@@ -3,6 +3,7 @@ import type { AudioPlayer, AudioStatus } from "expo-audio";
 import { create } from "zustand";
 
 import { getStreamCandidates } from "@/lib/api/playlist";
+import { lostPrivateRouteRecently } from "@/lib/audio-route";
 import { getStationByUuid, sendStationClick } from "@/lib/api/radio-browser";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 import { backoffDelay } from "@/lib/playback/backoff";
@@ -48,12 +49,34 @@ export type PlaybackStatus =
  * Why a paused player is paused.
  *
  *   user      Pause was pressed in the app.
- *   external  The platform paused it: a call or other interruption, headphones
- *             or Bluetooth disconnecting, or Pause on the lock screen/headset.
- *             expo-audio reports all of these the same way, so they share one
- *             reason.
+ *   route     Headphones, Bluetooth or a car disconnected. Audio is held
+ *             rather than sent to the phone's speaker by surprise.
+ *   external  The platform paused it for any other reason: a call or other
+ *             interruption, or Pause on the lock screen or a headset.
+ *             expo-audio reports these the same way, so they share a reason.
  */
-export type PauseReason = "user" | "external";
+export type PauseReason = "user" | "route" | "external";
+
+/* ------------------------------------------------------------------------ *
+ * Heartbeat
+ *
+ * The native player reports its status about twice a second for as long as it
+ * exists, including with the screen off — it is what keeps the process alive
+ * in the background. JS timers get no such guarantee: a backgrounded app's
+ * `setTimeout` can fire late.
+ *
+ * So anything that must happen on time while audio plays (the sleep timer, a
+ * recording's length limit) also checks itself on this beat rather than
+ * trusting a timer alone.
+ * ------------------------------------------------------------------------ */
+
+const heartbeatListeners = new Set<() => void>();
+
+/** Runs `listener` on every native status report. Returns an unsubscribe. */
+export function onPlaybackHeartbeat(listener: () => void): () => void {
+  heartbeatListeners.add(listener);
+  return () => heartbeatListeners.delete(listener);
+}
 
 /* ------------------------------------------------------------------------ *
  * Single-player invariant
@@ -453,7 +476,10 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       // itself) starts it again — never resume behind their back.
       if (get().status === "playing") {
         wantsToPlay = false;
-        set({ status: "paused", pauseReason: "external" });
+        set({
+          status: "paused",
+          pauseReason: lostPrivateRouteRecently() ? "route" : "external",
+        });
       }
       return;
     }
@@ -517,6 +543,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
       statusSub = next.addListener("playbackStatusUpdate", (status) => {
         if (token !== playToken) return;
         onStatus(status);
+        for (const beat of heartbeatListeners) beat();
       });
 
       next.play();

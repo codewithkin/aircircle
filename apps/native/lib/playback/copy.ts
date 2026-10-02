@@ -34,7 +34,12 @@ export function playbackLine(input: {
       return { text: "Connection lost. Retrying…", tone: "amber" };
     case "paused":
       return {
-        text: pauseReason === "external" ? "Paused · Tap to resume" : "Paused",
+        text:
+          pauseReason === "route"
+            ? "Paused · Audio route disconnected"
+            : pauseReason === "external"
+              ? "Paused · Tap to resume"
+              : "Paused",
         tone: "muted",
       };
     case "error":
