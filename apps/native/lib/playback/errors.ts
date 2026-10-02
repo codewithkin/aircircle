@@ -1,3 +1,5 @@
+import { msg, t } from "@/lib/i18n";
+
 export type PlaybackErrorKind =
   | "offline"
   | "stream_offline"
@@ -17,14 +19,14 @@ export type PlaybackError = {
 };
 
 const MESSAGES: Record<PlaybackErrorKind, string> = {
-  offline: "You're offline. Live radio needs an internet connection.",
-  stream_offline: "This station is offline right now.",
-  region_restricted: "This station is unavailable in your area.",
-  listener_limit: "This station has reached its listener limit.",
-  stale_url: "This station link may have changed.",
-  auth_required: "This station requires a login or subscription.",
-  recording_unavailable: "This recording is unavailable.",
-  unknown: "This station couldn't be played.",
+  offline: msg("You're offline. Live radio needs an internet connection."),
+  stream_offline: msg("This station is offline right now."),
+  region_restricted: msg("This station is unavailable in your area."),
+  listener_limit: msg("This station has reached its listener limit."),
+  stale_url: msg("This station link may have changed."),
+  auth_required: msg("This station requires a login or subscription."),
+  recording_unavailable: msg("This recording is unavailable."),
+  unknown: msg("This station couldn't be played."),
 };
 
 const NETWORK_PATTERN =
@@ -68,14 +70,14 @@ function kindOf(message: string, online: boolean): PlaybackErrorKind {
 export function classifyPlaybackError(reason: unknown, online: boolean): PlaybackError {
   const detail = messageOf(reason).trim();
   const kind = kindOf(detail, online);
-  return { kind, message: MESSAGES[kind], detail: detail || null };
+  return { kind, message: t(MESSAGES[kind]), detail: detail || null };
 }
 
 /** A saved recording whose file is missing or won't decode. */
 export function recordingUnavailableError(reason: unknown): PlaybackError {
   return {
     kind: "recording_unavailable",
-    message: MESSAGES.recording_unavailable,
+    message: t(MESSAGES.recording_unavailable),
     detail: messageOf(reason).trim() || null,
   };
 }

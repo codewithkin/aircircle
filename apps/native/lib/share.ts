@@ -1,6 +1,7 @@
 import { Share } from "react-native";
 
 import type { Station } from "@/lib/types";
+import { t } from "@/lib/i18n";
 
 /**
  * The text handed to the native share sheet. Station-only by default: what is
@@ -14,9 +15,9 @@ export function buildSharePayload(station: Station, nowPlaying?: string | null):
   const lines = [
     station.name,
     [place, genre].filter(Boolean).join(" · "),
-    nowPlaying ? `Now playing: ${nowPlaying}` : "",
+    nowPlaying ? t("Now playing: {{title}}", { title: nowPlaying }) : "",
     station.homepage ?? "",
-    "Found on Aircircle",
+    t("Found on Aircircle"),
   ];
 
   return lines.filter(Boolean).join("\n");

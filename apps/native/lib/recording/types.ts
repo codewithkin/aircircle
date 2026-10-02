@@ -1,3 +1,5 @@
+import { msg } from "@/lib/i18n";
+
 /** A completed recording saved on this device. */
 export type Recording = {
   id: string;
@@ -28,9 +30,9 @@ export type RecordingFailure =
   | "network";
 
 export const RECORDING_FAILURE_MESSAGES: Record<RecordingFailure, string> = {
-  "not-eligible": "This station does not permit offline recording.",
-  "unsupported-stream": "This station's stream can't be saved for offline listening.",
-  "no-space": "Not enough space to save this recording.",
-  "no-data": "Nothing was recorded — the station sent no audio.",
-  network: "The recording couldn't start. Check your connection and try again.",
+  "not-eligible": msg("This station does not permit offline recording."),
+  "unsupported-stream": msg("This station's stream can't be saved for offline listening."),
+  "no-space": msg("Not enough space to save this recording."),
+  "no-data": msg("Nothing was recorded — the station sent no audio."),
+  network: msg("The recording couldn't start. Check your connection and try again."),
 };

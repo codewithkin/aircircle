@@ -1,6 +1,7 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { AppState, Platform } from "react-native";
 
+import { msg, t } from "@/lib/i18n";
 import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
@@ -27,22 +28,31 @@ const PLAYED_FILE = `${DIRECTORY}played.jsonl`;
 /** The car lists are short on purpose; there is no point sending more. */
 const LIMIT = 30;
 
-/** Folder names for the car, supplied by the app so they follow its language. */
-export type CarLabels = {
-  favorites: string;
-  recents: string;
-  popular: string;
-  genres: string;
-  /** Keyed "genre.<tag>". */
-  [key: string]: string;
-};
+/** The directory tag behind each genre folder, and the genre's name in the app. */
+const CAR_GENRES: [tag: string, name: string][] = [
+  ["news", msg("News")],
+  ["pop", msg("Music")],
+  ["talk", msg("Talk")],
+  ["sports", msg("Sports")],
+  ["classical", msg("Classical")],
+  ["jazz", msg("Jazz")],
+  ["culture", msg("Culture")],
+  ["community", msg("Community")],
+  ["religious", msg("Religious")],
+  ["college", msg("Student/College")],
+];
 
-let labels: CarLabels = {
-  favorites: "Favorites",
-  recents: "Recent",
-  popular: "Popular",
-  genres: "Genres",
-};
+/** Folder names for the car, in the app's current language. */
+function carLabels(): Record<string, string> {
+  const labels: Record<string, string> = {
+    favorites: t("Favorites"),
+    recents: t("Recent"),
+    popular: t("Popular"),
+    genres: t("Genres"),
+  };
+  for (const [tag, name] of CAR_GENRES) labels[`genre.${tag}`] = t(name);
+  return labels;
+}
 
 let writeTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -53,7 +63,7 @@ async function writeLibrary(): Promise<void> {
     favorites: useFavorites.getState().stations.slice(0, LIMIT),
     recents: useRecents.getState().stations.slice(0, LIMIT),
     last: recording ? null : station,
-    labels,
+    labels: carLabels(),
   };
 
   try {
@@ -120,10 +130,9 @@ async function mergePlayedInCar(): Promise<void> {
   }
 }
 
-/** Updates the folder names the car shows, e.g. after a language change. */
-export function setCarLabels(next: CarLabels): void {
-  labels = next;
-  scheduleWrite();
+/** Rewrites what the car sees — used after a language change. */
+export function refreshCarLibrary(): void {
+  if (Platform.OS === "android") scheduleWrite();
 }
 
 export function startCarSync(): () => void {

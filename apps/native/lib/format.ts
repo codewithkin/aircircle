@@ -1,3 +1,5 @@
+import { t } from "@/lib/i18n";
+
 /** "04:12", or "1:04:12" past an hour. */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -33,10 +35,12 @@ export function formatTimeOfDay(epochMs: number): string {
 /** "4 min", "1 h 12 min" */
 export function formatDuration(ms: number): string {
   const minutes = Math.max(1, Math.round(ms / 60_000));
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return t("{{minutes}} min", { minutes });
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+  return rest === 0
+    ? t("{{hours}} h", { hours })
+    : t("{{hours}} h {{minutes}} min", { hours, minutes: rest });
 }
 
 /** "Today", "Yesterday", or "3 Sep". */
@@ -46,7 +50,7 @@ export function formatDay(epochMs: number): string {
   const dayMs = 86_400_000;
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
-  if (epochMs >= startOfToday) return "Today";
-  if (epochMs >= startOfToday - dayMs) return "Yesterday";
+  if (epochMs >= startOfToday) return t("Today");
+  if (epochMs >= startOfToday - dayMs) return t("Yesterday");
   return date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }

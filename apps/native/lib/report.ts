@@ -2,6 +2,7 @@ import { Linking } from "react-native";
 
 import type { Station } from "@/lib/types";
 import type { ReportReason } from "@/stores/report";
+import { msg } from "@/lib/i18n";
 
 /**
  * Where station reports are sent. Not set yet: until there is a support
@@ -11,11 +12,11 @@ import type { ReportReason } from "@/stores/report";
 export const REPORT_EMAIL: string | null = null;
 
 export const REPORT_REASONS: Record<ReportReason, string> = {
-  "no-play": "Stream doesn’t play",
-  "wrong-audio": "Wrong station or audio",
-  "wrong-details": "Wrong name, logo or place",
-  "wrong-metadata": "Now playing info is wrong",
-  other: "Something else",
+  "no-play": msg("Stream doesn’t play"),
+  "wrong-audio": msg("Wrong station or audio"),
+  "wrong-details": msg("Wrong name, logo or place"),
+  "wrong-metadata": msg("Now playing info is wrong"),
+  other: msg("Something else"),
 };
 
 type ReportInput = {

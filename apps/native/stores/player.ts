@@ -19,6 +19,7 @@ import { getJson, remove, setJson } from "@/lib/storage";
 import type { Station } from "@/lib/types";
 import { useNetwork } from "@/stores/network";
 import { useRecents } from "@/stores/recents";
+import { t } from "@/lib/i18n";
 
 const LAST_STATION_KEY = "player.lastStation";
 
@@ -252,7 +253,7 @@ export function updateLockScreenNowPlaying(station: Station, nowPlaying: string 
     player?.updateLockScreenMetadata({
       title: station.name,
       artist: nowPlaying ?? "Aircircle",
-      albumTitle: station.country || "Live radio",
+      albumTitle: station.country || t("Live radio"),
       artworkUrl: LOCK_SCREEN_ARTWORK,
     });
   } catch {
@@ -560,7 +561,7 @@ export const usePlayer = create<PlayerState & PlayerActions>((set, get) => {
             {
               title: station.name,
               artist: "Aircircle",
-              albumTitle: recording ? "Saved recording" : station.country || "Live radio",
+              albumTitle: recording ? t("Saved recording") : station.country || t("Live radio"),
               artworkUrl: LOCK_SCREEN_ARTWORK,
             },
             // Live radio: no scrub bar, no skip buttons.

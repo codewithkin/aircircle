@@ -1,6 +1,7 @@
 import type { PlaybackErrorKind } from "@/lib/playback/errors";
 import type { Recording } from "@/lib/recording/types";
 import type { PauseReason, PlaybackStatus } from "@/stores/player";
+import { msg, t } from "@/lib/i18n";
 
 export type PlaybackTone = "live" | "muted" | "amber" | "alert" | "recorded";
 
@@ -18,34 +19,34 @@ export function playbackLine(input: {
   const { status, pauseReason, recording, nowPlaying } = input;
 
   if (recording) {
-    if (status === "playing") return { text: "Recorded · Playing", tone: "recorded" };
-    if (status === "error") return { text: "This recording is unavailable", tone: "alert" };
-    return { text: "Recorded · Paused", tone: "recorded" };
+    if (status === "playing") return { text: t("Recorded · Playing"), tone: "recorded" };
+    if (status === "error") return { text: t("This recording is unavailable"), tone: "alert" };
+    return { text: t("Recorded · Paused"), tone: "recorded" };
   }
 
   switch (status) {
     case "connecting":
-      return { text: "Connecting…", tone: "muted" };
+      return { text: t("Connecting…"), tone: "muted" };
     case "buffering":
-      return { text: "Waiting for the live stream…", tone: "muted" };
+      return { text: t("Waiting for the live stream…"), tone: "muted" };
     case "playing":
-      return { text: nowPlaying ? `Live · ${nowPlaying}` : "Live", tone: "live" };
+      return { text: nowPlaying ? t("Live · {{title}}", { title: nowPlaying }) : t("Live"), tone: "live" };
     case "reconnecting":
-      return { text: "Connection lost. Retrying…", tone: "amber" };
+      return { text: t("Connection lost. Retrying…"), tone: "amber" };
     case "paused":
       return {
         text:
           pauseReason === "route"
-            ? "Paused · Audio route disconnected"
+            ? t("Paused · Audio route disconnected")
             : pauseReason === "external"
-              ? "Paused · Tap to resume"
-              : "Paused",
+              ? t("Paused · Tap to resume")
+              : t("Paused"),
         tone: "muted",
       };
     case "error":
-      return { text: "Couldn't play · Tap for options", tone: "alert" };
+      return { text: t("Couldn't play · Tap for options"), tone: "alert" };
     default:
-      return { text: "Tap to resume", tone: "muted" };
+      return { text: t("Tap to resume"), tone: "muted" };
   }
 }
 
@@ -55,35 +56,35 @@ export function playbackLine(input: {
  */
 export const FAILURE_COPY: Record<PlaybackErrorKind, { label: string; detail: string }> = {
   offline: {
-    label: "No connection",
-    detail: "Live radio needs an internet connection. Favorites and Recents are still available.",
+    label: msg("No connection"),
+    detail: msg("Live radio needs an internet connection. Favorites and Recents are still available."),
   },
   stream_offline: {
-    label: "Stream offline",
-    detail: "The broadcaster’s stream isn’t responding. This can be temporary.",
+    label: msg("Stream offline"),
+    detail: msg("The broadcaster’s stream isn’t responding. This can be temporary."),
   },
   region_restricted: {
-    label: "Region restricted",
-    detail: "Broadcasters can limit where their stream plays.",
+    label: msg("Region restricted"),
+    detail: msg("Broadcasters can limit where their stream plays."),
   },
   listener_limit: {
-    label: "Station full",
-    detail: "Too many people are listening right now. Try again in a little while.",
+    label: msg("Station full"),
+    detail: msg("Too many people are listening right now. Try again in a little while."),
   },
   stale_url: {
-    label: "Link changed",
-    detail: "The address we have for this stream no longer works. The station’s website may have the new one.",
+    label: msg("Link changed"),
+    detail: msg("The address we have for this stream no longer works. The station’s website may have the new one."),
   },
   auth_required: {
-    label: "Login required",
-    detail: "The broadcaster only lets signed-in listeners play this stream.",
+    label: msg("Login required"),
+    detail: msg("The broadcaster only lets signed-in listeners play this stream."),
   },
   recording_unavailable: {
-    label: "Recording",
-    detail: "The saved file is missing or can’t be read. You can remove it from Recordings.",
+    label: msg("Recording"),
+    detail: msg("The saved file is missing or can’t be read. You can remove it from Recordings."),
   },
   unknown: {
-    label: "Couldn’t play",
-    detail: "The stream didn’t start. It may be a format this phone can’t play.",
+    label: msg("Couldn’t play"),
+    detail: msg("The stream didn’t start. It may be a format this phone can’t play."),
   },
 };

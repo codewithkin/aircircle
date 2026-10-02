@@ -2,6 +2,7 @@ import { useNetwork } from "@/stores/network";
 import { usePlayer } from "@/stores/player";
 import { useSettings } from "@/stores/settings";
 import { useToast } from "@/stores/toast";
+import { t } from "@/lib/i18n";
 
 /**
  * Tells the listener when live radio starts using mobile data.
@@ -29,7 +30,7 @@ export function startDataNoticeService(): () => void {
 
     noticed = true;
     useToast.getState().show({
-      message: "Playing on mobile data",
+      message: t("Playing on mobile data"),
       icon: "data_usage",
     });
   };

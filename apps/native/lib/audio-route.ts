@@ -1,5 +1,6 @@
 import { requireOptionalNativeModule } from "expo";
 import { create } from "zustand";
+import { t } from "@/lib/i18n";
 
 /** Where audio is going right now. */
 export type AudioRouteKind = "speaker" | "wired" | "bluetooth" | "car" | "other";
@@ -60,15 +61,15 @@ export function routeLabel(route: AudioRoute): string {
   if (route.name) return route.name;
   switch (route.kind) {
     case "wired":
-      return "Headphones";
+      return t("Headphones");
     case "bluetooth":
-      return "Bluetooth";
+      return t("Bluetooth");
     case "car":
-      return "Car";
+      return t("Car");
     case "speaker":
-      return "Phone";
+      return t("Phone");
     default:
-      return "Output";
+      return t("Output");
   }
 }
 
