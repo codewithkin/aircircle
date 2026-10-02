@@ -15,7 +15,8 @@ import { startTelemetryInstrumentation } from "@/lib/telemetry/instrument";
  * text-encoding, and only where the runtime doesn't already provide them.
  */
 
-const APP_ID = process.env.EXPO_PUBLIC_TELEMETRYDECK_APP_ID ?? "";
+/** Not a secret: it only names the app that signals are filed under. */
+const APP_ID = "FEDF279D-CB13-421F-8426-A06BB2694968";
 
 type Options = Parameters<typeof createTelemetryDeck>[0];
 
@@ -29,12 +30,9 @@ function installWebShims(): void {
 }
 
 /**
- * Connects `track()` to TelemetryDeck and starts watching the app. Does
- * nothing — and sends nothing — until an App ID is configured.
+ * Connects `track()` to TelemetryDeck and starts watching the app.
  */
 export function startTelemetry(): () => void {
-  if (!APP_ID) return () => {};
-
   try {
     installWebShims();
 

@@ -12,8 +12,7 @@ import { useSettings } from "@/stores/settings";
  *   - The only identifier is a random id made on this device, which
  *     TelemetryDeck hashes again before storing. It can't be tied to a person
  *     and is wiped with the app's data.
- *   - The listener can turn it off in Settings, and nothing is sent until an
- *     App ID is configured.
+ *   - The listener can turn it off in Settings.
  *
  * The sender is plugged in separately (see `telemetrydeck.ts`) so that
  * nothing else in the app depends on the analytics SDK.
