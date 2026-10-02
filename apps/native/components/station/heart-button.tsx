@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { MotiView } from "moti";
 
 import { Icon } from "@/components/ui/icon";
@@ -5,6 +6,7 @@ import { PressableScale } from "@/components/ui/pressable-scale";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
+import { useToast } from "@/stores/toast";
 import { springs } from "@/theme/motion";
 import { colors } from "@/theme/tokens";
 
@@ -40,7 +42,18 @@ export function HeartButton({
 
   return (
     <PressableScale
-      onPress={() => toggle(station)}
+      onPress={() => {
+        toggle(station);
+        // Only saving is confirmed; the heart emptying says enough for a removal.
+        if (!saved) {
+          useToast.getState().show({
+            message: "Saved to Favorites · on this device",
+            icon: "favorite",
+            actionLabel: "View",
+            onAction: () => router.navigate("/favorites"),
+          });
+        }
+      }}
       haptic="confirm"
       pressedScale={0.88}
       accessibilityRole="button"
