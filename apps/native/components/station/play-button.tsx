@@ -3,6 +3,7 @@ import { MotiView } from "moti";
 import { Icon } from "@/components/ui/icon";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { playFeedback } from "@/lib/sounds";
 import { springs } from "@/theme/motion";
 import { colors } from "@/theme/tokens";
 
@@ -39,7 +40,12 @@ export function PlayButton({
 
   return (
     <PressableScale
-      onPress={onPress}
+      onPress={() => {
+        // The sound confirms the tap itself, so it follows what was pressed.
+        if (state === "play") playFeedback("play");
+        else if (state === "pause") playFeedback("pause");
+        onPress?.();
+      }}
       disabled={disabled}
       haptic="confirm"
       pressedScale={0.92}
