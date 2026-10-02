@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+.git
+.env*.local
+*.log
+
+# Native-only build output. The web image never touches apps/native, but these
+# directories are large and would bloat the build context if the daemon walked them.
+**/android
+**/ios
+**/.expo
