@@ -1,10 +1,12 @@
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { Linking, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/controls";
+import { LanguageSheet, currentLanguageName } from "@/components/ui/language-sheet";
 import { Icon } from "@/components/ui/icon";
 import { LogoMark } from "@/components/ui/logo-mark";
 import { PressableScale } from "@/components/ui/pressable-scale";
@@ -20,13 +22,14 @@ import { useRecents } from "@/stores/recents";
 import { useRecordings } from "@/stores/recordings";
 import { useSettings } from "@/stores/settings";
 import { GUTTER, colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const SLEEP_PRESETS = [15, 30, 45, 60, 120];
 
 function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return t("{{minutes}} min", { minutes });
   const hours = minutes / 60;
-  return hours === 1 ? "1 hour" : `${hours} hours`;
+  return hours === 1 ? t("1 hour") : t("{{hours}} hours", { hours });
 }
 
 function Row({
@@ -76,7 +79,7 @@ function CycleRow({
       pressedScale={0.99}
       accessibilityRole="button"
       accessibilityLabel={`${label}: ${value}`}
-      accessibilityHint="Tap to change."
+      accessibilityHint={t("Tap to change.")}
     >
       <Row label={label} divider={divider}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -119,6 +122,7 @@ export default function Settings() {
   const defaultSleepMinutes = useSettings((s) => s.defaultSleepMinutes);
   const update = useSettings((s) => s.update);
 
+  const [languageOpen, setLanguageOpen] = useState(false);
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
   return (
@@ -129,7 +133,7 @@ export default function Settings() {
       >
         <Rise>
           <Txt variant="titleLg" accessibilityRole="header">
-            Settings
+            {t("Settings")}
           </Txt>
         </Rise>
 
@@ -152,7 +156,7 @@ export default function Settings() {
             />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <LogoMark inverted />
-              <Eyebrow color={colors.nightText}>On this device</Eyebrow>
+              <Eyebrow color={colors.nightText}>{t("On this device")}</Eyebrow>
             </View>
             <Txt
               color={colors.onInk}
@@ -165,15 +169,15 @@ export default function Settings() {
                 maxWidth: 260,
               }}
             >
-              Everything stays on this phone.
+              {t("Everything stays on this phone.")}
             </Txt>
             <View style={{ flexDirection: "row", gap: 28, marginTop: 18 }}>
-              <Stat value={favorites} label="Favorites" />
-              <Stat value={recents} label="Recents" />
+              <Stat value={favorites} label={t("Favorites")} />
+              <Stat value={recents} label={t("Recents")} />
               {recordings > 0 ? (
-                <Stat value={recordings} label="Recordings" />
+                <Stat value={recordings} label={t("Recordings")} />
               ) : (
-                <Stat value={hasLastStation ? 1 : 0} label="Last station" />
+                <Stat value={hasLastStation ? 1 : 0} label={t("Last station")} />
               )}
             </View>
             <View
@@ -186,24 +190,24 @@ export default function Settings() {
               }}
             >
               <Txt variant="caption" color={colors.nightText} style={{ flexShrink: 1 }}>
-                No account. Nothing is synced.
+                {t("No account. Nothing is synced.")}
               </Txt>
               <Button
-                label="Manage"
+                label={t("Manage")}
                 variant="night"
                 height={38}
                 onPress={() => router.push("/local-data")}
-                accessibilityLabel="Manage local data"
+                accessibilityLabel={t("Manage local data")}
               />
             </View>
           </View>
         </Rise>
 
         <Rise index={2} style={{ marginTop: 26 }}>
-          <Eyebrow>Playback</Eyebrow>
+          <Eyebrow>{t("Playback")}</Eyebrow>
           <View style={{ marginTop: 4 }}>
             <CycleRow
-              label="Default sleep timer"
+              label={t("Default sleep timer")}
               value={formatMinutes(defaultSleepMinutes)}
               divider={false}
               onPress={() => {
@@ -217,80 +221,82 @@ export default function Settings() {
         </Rise>
 
         <Rise index={3} style={{ marginTop: 22 }}>
-          <Eyebrow>Appearance & accessibility</Eyebrow>
+          <Eyebrow>{t("Appearance & accessibility")}</Eyebrow>
           <View style={{ marginTop: 4 }}>
-            <Row label="Reduce motion">
+            <CycleRow
+              label={t("Language")}
+              value={currentLanguageName()}
+              onPress={() => setLanguageOpen(true)}
+            />
+            <Row label={t("Reduce motion")}>
               <Toggle
                 value={reduceMotion}
                 onChange={(v) => update({ reduceMotion: v })}
-                accessibilityLabel="Reduce motion"
+                accessibilityLabel={t("Reduce motion")}
               />
             </Row>
-            <Row label="Haptic feedback">
+            <Row label={t("Haptic feedback")}>
               <Toggle
                 value={hapticsEnabled}
                 onChange={(v) => update({ hapticsEnabled: v })}
-                accessibilityLabel="Haptic feedback"
+                accessibilityLabel={t("Haptic feedback")}
               />
             </Row>
-            <Row label="Play and pause sounds" divider={false}>
+            <Row label={t("Play and pause sounds")} divider={false}>
               <Toggle
                 value={soundFeedbackEnabled}
                 onChange={(v) => update({ soundFeedbackEnabled: v })}
-                accessibilityLabel="Play and pause sounds"
+                accessibilityLabel={t("Play and pause sounds")}
               />
             </Row>
           </View>
         </Rise>
 
         <Rise index={4} style={{ marginTop: 22 }}>
-          <Eyebrow>Data & network</Eyebrow>
+          <Eyebrow>{t("Data & network")}</Eyebrow>
           <View style={{ marginTop: 4 }}>
-            <Row label="Tell me when on mobile data" divider={false}>
+            <Row label={t("Tell me when on mobile data")} divider={false}>
               <Toggle
                 value={mobileDataNotice}
                 onChange={(v) => update({ mobileDataNotice: v })}
-                accessibilityLabel="Tell me when playback uses mobile data"
+                accessibilityLabel={t("Tell me when playback uses mobile data")}
               />
             </Row>
           </View>
           <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 8, lineHeight: 20 }}>
-            Live radio streams over the internet and keeps using data while it plays in the
-            background. Stations come from third-party broadcasters and may be unavailable in
-            some regions.
+            {t("Live radio streams over the internet and keeps using data while it plays in the background. Stations come from third-party broadcasters and may be unavailable in some regions.")}
           </Txt>
         </Rise>
 
         <Rise index={5} style={{ marginTop: 22 }}>
-          <Eyebrow>Privacy</Eyebrow>
+          <Eyebrow>{t("Privacy")}</Eyebrow>
           <View style={{ marginTop: 4 }}>
-            <Row label="Share anonymous usage data" divider={false}>
+            <Row label={t("Share anonymous usage data")} divider={false}>
               <Toggle
                 value={analyticsEnabled}
                 onChange={(v) => update({ analyticsEnabled: v })}
-                accessibilityLabel="Share anonymous usage data"
+                accessibilityLabel={t("Share anonymous usage data")}
               />
             </Row>
           </View>
           <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 8, lineHeight: 20 }}>
-            Helps us see which stations fail and whether playback holds up. Never your name, your
-            searches or your location, and there is no account to tie it to.
+            {t("Helps us see which stations fail and whether playback holds up. Never your name, your searches or your location, and there is no account to tie it to.")}
           </Txt>
         </Rise>
 
         <Rise index={6} style={{ marginTop: 22 }}>
-          <Eyebrow>Support</Eyebrow>
+          <Eyebrow>{t("Support")}</Eyebrow>
           <View style={{ marginTop: 4 }}>
             <CycleRow
-              label="Contact support"
+              label={t("Contact support")}
               value=""
               onPress={() =>
                 void Linking.openURL(
-                  `mailto:${REPORT_EMAIL ?? ""}?subject=${encodeURIComponent("Aircircle support")}`,
+                  `mailto:${REPORT_EMAIL ?? ""}?subject=${encodeURIComponent(t("Aircircle support"))}`,
                 ).catch(() => {})
               }
             />
-            <Row label="Version" divider={false}>
+            <Row label={t("Version")} divider={false}>
               <Txt variant="body" color={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 13 }}>
                 {version}
               </Txt>
@@ -298,6 +304,8 @@ export default function Settings() {
           </View>
         </Rise>
       </ScrollView>
+
+      <LanguageSheet visible={languageOpen} onClose={() => setLanguageOpen(false)} />
     </Screen>
   );
 }

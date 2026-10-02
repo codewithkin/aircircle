@@ -49,6 +49,9 @@ useSettings.getState().restore();
 export default function Layout() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
   const hasOnboarded = useOnboarding((s) => s.hasOnboarded);
+  // Translations are read when a screen renders, so a new language is applied
+  // by rebuilding the screens: this key changes, and everything remounts.
+  const language = useSettings((s) => s.language);
 
   // Playback lives here, above every screen, so navigation never touches it.
   useEffect(() => {
@@ -92,6 +95,7 @@ export default function Layout() {
       <KeyboardProvider>
         <StatusBar style="dark" />
         <Stack
+          key={language ?? "device"}
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.canvas },
