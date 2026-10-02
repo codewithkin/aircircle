@@ -115,6 +115,7 @@ export default function Settings() {
   const hapticsEnabled = useSettings((s) => s.hapticsEnabled);
   const soundFeedbackEnabled = useSettings((s) => s.soundFeedbackEnabled);
   const mobileDataNotice = useSettings((s) => s.mobileDataNotice);
+  const analyticsEnabled = useSettings((s) => s.analyticsEnabled);
   const defaultSleepMinutes = useSettings((s) => s.defaultSleepMinutes);
   const update = useSettings((s) => s.update);
 
@@ -261,6 +262,23 @@ export default function Settings() {
         </Rise>
 
         <Rise index={5} style={{ marginTop: 22 }}>
+          <Eyebrow>Privacy</Eyebrow>
+          <View style={{ marginTop: 4 }}>
+            <Row label="Share anonymous usage data" divider={false}>
+              <Toggle
+                value={analyticsEnabled}
+                onChange={(v) => update({ analyticsEnabled: v })}
+                accessibilityLabel="Share anonymous usage data"
+              />
+            </Row>
+          </View>
+          <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 8, lineHeight: 20 }}>
+            Helps us see which stations fail and whether playback holds up. Never your name, your
+            searches or your location, and there is no account to tie it to.
+          </Txt>
+        </Rise>
+
+        <Rise index={6} style={{ marginTop: 22 }}>
           <Eyebrow>Support</Eyebrow>
           <View style={{ marginTop: 4 }}>
             <CycleRow
