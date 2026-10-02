@@ -12,6 +12,7 @@ import {
 } from "@/lib/recording/recorder";
 import type { Recording, RecordingFailure } from "@/lib/recording/types";
 import { getJson, remove, setJson } from "@/lib/storage";
+import { getActiveStreamUrl } from "@/stores/player";
 import type { Station } from "@/lib/types";
 
 const RECORDINGS_KEY = "recordings.list";
@@ -83,7 +84,8 @@ export const useRecordings = create<RecordingsState & RecordingsActions>((set, g
       set({ isStarting: true, failure: null, lastSaved: null });
 
       try {
-        const { startedAt } = await beginCapture(station, (reason) => {
+        // Capture the stream that is actually playing, fallback or not.
+        const { startedAt } = await beginCapture(station, getActiveStreamUrl(), (reason) => {
           clearTimers();
           set({ active: null, failure: reason });
         });

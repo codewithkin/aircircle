@@ -129,13 +129,15 @@ export async function hasSpaceToContinue(): Promise<boolean> {
  */
 export async function beginCapture(
   station: Station,
+  /** The stream to capture. Falls back to the station's primary stream. */
+  activeUrl: string | null,
   onFailure?: (reason: RecordingFailure) => void,
 ): Promise<{ startedAt: number }> {
   if (active) await abortCapture();
 
   let streamUrl: string;
   try {
-    streamUrl = await getPlayableStreamUrl(station);
+    streamUrl = activeUrl ?? (await getPlayableStreamUrl(station));
   } catch {
     throw new CaptureError("network", "Could not resolve the stream URL");
   }
