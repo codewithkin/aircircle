@@ -7,6 +7,7 @@ import { useStationPlayback } from "@/hooks/use-station-playback";
 import { isUnavailable } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type StationStatusProps = {
   station: Station;
@@ -25,7 +26,7 @@ type StationStatusProps = {
 export function StationStatus({
   station,
   detail,
-  liveLabel = "Live",
+  liveLabel = t("Live"),
   onDark = false,
 }: StationStatusProps) {
   const playback = useStationPlayback(station);
@@ -39,7 +40,7 @@ export function StationStatus({
       <>
         <EqBars size={16} color={strong} />
         <Txt variant="captionMedium" color={strong}>
-          Playing
+          {t("Playing")}
         </Txt>
       </>
     );
@@ -48,7 +49,7 @@ export function StationStatus({
       <>
         <Icon name="progress_activity" size={16} color={soft} />
         <Txt variant="captionMedium" color={soft}>
-          Connecting…
+          {t("Connecting…")}
         </Txt>
       </>
     );
@@ -57,7 +58,7 @@ export function StationStatus({
       <>
         <Icon name="sync" size={16} color={colors.amber} />
         <Txt variant="captionMedium" color={colors.amber}>
-          Reconnecting
+          {t("Reconnecting")}
         </Txt>
       </>
     );
@@ -66,7 +67,7 @@ export function StationStatus({
       <>
         <Icon name="error" size={16} color={colors.alert} />
         <Txt variant="captionMedium" color={colors.alert} numberOfLines={1}>
-          {playback === "error" ? "Couldn't play" : "Offline right now"}
+          {playback === "error" ? t("Couldn't play") : t("Offline right now")}
         </Txt>
       </>
     );

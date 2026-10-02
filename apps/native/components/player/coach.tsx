@@ -20,6 +20,7 @@ import { useOnboarding } from "@/stores/onboarding";
 import { useRecordings } from "@/stores/recordings";
 import { springs } from "@/theme/motion";
 import { colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** How long the first-listen banner stays if it isn't closed by hand. */
 const CELEBRATION_MS = 4500;
@@ -75,10 +76,10 @@ function Celebration({ onDone }: { onDone: () => void }) {
       </View>
       <View style={{ flex: 1, gap: 6 }}>
         <Txt color={colors.onInk} style={{ fontFamily: fonts.serif, fontSize: 30, lineHeight: 31 }}>
-          You’re live.
+          {t("You’re live.")}
         </Txt>
         <Txt variant="meta" color="#B8BCC8" style={{ lineHeight: 19 }}>
-          This station is now playing. We’ll keep it close on Home.
+          {t("This station is now playing. We’ll keep it close on Home.")}
         </Txt>
       </View>
       <View style={{ alignSelf: "flex-start" }}>
@@ -88,7 +89,7 @@ function Celebration({ onDone }: { onDone: () => void }) {
           iconSize={18}
           color={colors.onInk}
           background="rgba(255,255,255,0.1)"
-          accessibilityLabel="Dismiss"
+          accessibilityLabel={t("Dismiss")}
           onPress={onDone}
         />
       </View>
@@ -128,7 +129,7 @@ function TipCard({
         padding: 20,
       }}
     >
-      <Eyebrow color={dark ? colors.nightText : colors.inkFaint}>{`Tip ${step + 1} of 3`}</Eyebrow>
+      <Eyebrow color={dark ? colors.nightText : colors.inkFaint}>{t("Tip {{step}} of 3", { step: step + 1 })}</Eyebrow>
       {children}
     </MotiView>
   );
@@ -136,7 +137,7 @@ function TipCard({
 
 function TipActions({
   onSkip,
-  skipLabel = "Skip tips",
+  skipLabel = t("Skip tips"),
   children,
 }: {
   onSkip: () => void;
@@ -192,11 +193,11 @@ export function Coach({ station }: { station: Station }) {
         <View style={{ flexDirection: "row", gap: 12, marginTop: 10 }}>
           <Icon name="favorite" size={24} color="#AE316E" />
           <Txt variant="section" style={{ flex: 1, lineHeight: 23 }}>
-            Tap the heart to save this station on your device.
+            {t("Tap the heart to save this station on your device.")}
           </Txt>
         </View>
         <TipActions onSkip={skipTips}>
-          <Button label="Got it" variant="signal" height={38} onPress={advanceTips} />
+          <Button label={t("Got it")} variant="signal" height={38} onPress={advanceTips} />
         </TipActions>
       </TipCard>
     );
@@ -208,7 +209,7 @@ export function Coach({ station }: { station: Station }) {
         <View style={{ flexDirection: "row", gap: 12, marginTop: 10 }}>
           <Icon name="lock" size={24} filled />
           <Txt variant="heading" style={{ flex: 1, lineHeight: 24 }}>
-            Lock your phone or switch apps—use the system media controls to keep listening.
+            {t("Lock your phone or switch apps—use the system media controls to keep listening.")}
           </Txt>
         </View>
         <View
@@ -229,7 +230,7 @@ export function Coach({ station }: { station: Station }) {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Icon name="lock" size={13} color={colors.nightText} filled />
               <Txt variant="tab" color={colors.nightText}>
-                Lock screen · Aircircle
+                {t("Lock screen · Aircircle")}
               </Txt>
             </View>
             <Txt variant="label" color={colors.onInk} numberOfLines={1}>
@@ -240,7 +241,7 @@ export function Coach({ station }: { station: Station }) {
           <Icon name="stop" size={22} color={colors.onInk} filled />
         </View>
         <TipActions onSkip={skipTips}>
-          <Button label="Got it" variant="signal" height={44} onPress={advanceTips} />
+          <Button label={t("Got it")} variant="signal" height={44} onPress={advanceTips} />
         </TipActions>
       </TipCard>
     );
@@ -253,13 +254,13 @@ export function Coach({ station }: { station: Station }) {
         <View style={{ flexDirection: "row", gap: 12, marginTop: 14 }}>
           <Icon name="bedtime" size={24} color={colors.nightAccent} />
           <Txt variant="titleSm" color={colors.onInk} style={{ flex: 1, fontSize: 20, lineHeight: 26 }}>
-            Set a sleep timer whenever you want playback to stop automatically.
+            {t("Set a sleep timer whenever you want playback to stop automatically.")}
           </Txt>
         </View>
         <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
-          <Button label="Not now" variant="nightOutline" height={52} onPress={skipTips} />
+          <Button label={t("Not now")} variant="nightOutline" height={52} onPress={skipTips} />
           <Button
-            label="Set timer"
+            label={t("Set timer")}
             icon="bedtime"
             variant="night"
             height={52}
@@ -278,18 +279,18 @@ export function Coach({ station }: { station: Station }) {
     return (
       <TipCard step={2}>
         <Txt variant="titleSm" style={{ marginTop: 12 }}>
-          Save this station for offline listening.
+          {t("Save this station for offline listening.")}
         </Txt>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
           <Icon name="info" size={16} color={colors.inkFaint} />
           <Txt variant="caption" color={colors.inkFaint}>
-            Recording starts only when you tap Record.
+            {t("Recording starts only when you tap Record.")}
           </Txt>
         </View>
         <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
-          <Button label="Maybe later" variant="outline" height={52} onPress={skipTips} />
+          <Button label={t("Maybe later")} variant="outline" height={52} onPress={skipTips} />
           <Button
-            label="Record"
+            label={t("Record")}
             icon="fiber_manual_record"
             iconFilled
             variant="alert"
@@ -308,11 +309,11 @@ export function Coach({ station }: { station: Station }) {
   return (
     <TipCard step={2}>
       <Txt variant="titleSm" style={{ marginTop: 12, fontSize: 20, lineHeight: 26 }}>
-        We’ll remember this station here for your next visit.
+        {t("We’ll remember this station here for your next visit.")}
       </Txt>
-      <TipActions onSkip={skipTips} skipLabel="Stay here">
+      <TipActions onSkip={skipTips} skipLabel={t("Stay here")}>
         <Button
-          label="Go to Home"
+          label={t("Go to Home")}
           height={44}
           onPress={() => {
             skipTips();

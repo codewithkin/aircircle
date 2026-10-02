@@ -13,14 +13,15 @@ import { haptics } from "@/lib/haptics";
 import { useNetwork } from "@/stores/network";
 import { springs, timing } from "@/theme/motion";
 import { colors, fonts } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
 const TABS: Record<string, { label: string; icon: IconName }> = {
-  index: { label: "Home", icon: "home" },
-  search: { label: "Search", icon: "search" },
-  favorites: { label: "Favorites", icon: "favorite" },
-  settings: { label: "Settings", icon: "settings" },
+  index: { label: msg("Home"), icon: "home" },
+  search: { label: msg("Search"), icon: "search" },
+  favorites: { label: msg("Favorites"), icon: "favorite" },
+  settings: { label: msg("Settings"), icon: "settings" },
 };
 
 /**
@@ -65,7 +66,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
             <Pressable
               key={route.key}
               accessibilityRole="tab"
-              accessibilityLabel={tab.label}
+              accessibilityLabel={t(tab.label)}
               accessibilityState={{ selected: focused }}
               onPress={() => {
                 const event = navigation.emit({
@@ -94,7 +95,7 @@ export function TabBar({ state, navigation }: TabBarProps) {
                 color={focused ? active : inactive}
                 style={{ fontFamily: focused ? fonts.sansSemibold : fonts.sansMedium }}
               >
-                {tab.label}
+                {t(tab.label)}
               </Txt>
             </Pressable>
           );

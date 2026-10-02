@@ -9,6 +9,7 @@ import { Txt } from "@/components/ui/txt";
 import { useAsync } from "@/hooks/use-async";
 import type { BrowseEntry } from "@/lib/api/radio-browser";
 import { colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type PickerSheetProps = {
   visible: boolean;
@@ -57,10 +58,10 @@ export function PickerSheet({ visible, onClose, title, load, selected, onSelect 
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={`Find a ${title.toLowerCase()}`}
+          placeholder={t("Search")}
           placeholderTextColor={colors.inkFaint}
           autoCorrect={false}
-          accessibilityLabel={`Find a ${title.toLowerCase()}`}
+          accessibilityLabel={t("Search")}
           style={{ flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.ink, padding: 0 }}
         />
       </View>
@@ -83,19 +84,19 @@ export function PickerSheet({ visible, onClose, title, load, selected, onSelect 
                   }}
                   pressedScale={0.985}
                   accessibilityRole="button"
-                  accessibilityLabel={`Clear ${title.toLowerCase()} filter`}
+                  accessibilityLabel={t("Remove filters")}
                   style={{ height: 52, flexDirection: "row", alignItems: "center", gap: 10 }}
                 >
                   <Icon name="close" size={20} color={colors.inkSoft} />
                   <Txt variant="bodyLg" color={colors.inkSoft}>
-                    Any {title.toLowerCase()}
+                    {t("All")}
                   </Txt>
                 </PressableScale>
               ) : null
             }
             ListEmptyComponent={
               <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 18 }}>
-                {options.error ? "Couldn’t load the list. Check your connection." : "Nothing matches."}
+                {options.error ? t("Couldn’t load the list. Check your connection.") : t("Nothing matches.")}
               </Txt>
             }
             renderItem={({ item }) => {
@@ -109,7 +110,7 @@ export function PickerSheet({ visible, onClose, title, load, selected, onSelect 
                   pressedScale={0.985}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={`${item.name}, ${item.stationCount} stations`}
+                  accessibilityLabel={t("{{name}}, {{count}} stations", { name: item.name, count: item.stationCount })}
                   style={{
                     height: 52,
                     flexDirection: "row",

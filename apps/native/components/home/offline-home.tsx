@@ -17,6 +17,7 @@ import { useFavorites } from "@/stores/favorites";
 import { useNetwork } from "@/stores/network";
 import { useRecents } from "@/stores/recents";
 import { GUTTER, colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** One of the dashed rings around the offline symbol, breathing slowly. */
 function Ring({ size, opacity, delay }: { size: number; opacity: number; delay: number }) {
@@ -47,7 +48,7 @@ function SavedRow({ station, kind, last }: { station: Station; kind: string; las
   return (
     <View
       accessible
-      accessibilityLabel={`${station.name}, ${kind}. Unavailable while offline.`}
+      accessibilityLabel={t("{{name}}, {{kind}}. Unavailable while offline.", { name: station.name, kind })}
       style={{
         minHeight: 76,
         flexDirection: "row",
@@ -124,7 +125,7 @@ export function OfflineHome() {
           >
             <Icon name="wifi_off" size={16} color="#C9CCD4" />
             <Txt variant="captionMedium" color="#C9CCD4">
-              No connection
+              {t("No connection")}
             </Txt>
           </View>
         </Rise>
@@ -153,18 +154,18 @@ export function OfflineHome() {
 
         <Rise index={1}>
           <Txt variant="display" color={colors.onInk} accessibilityRole="header">
-            You’re offline.
+            {t("You’re offline.")}
           </Txt>
         </Rise>
         <Rise index={2}>
           <Txt variant="body" color="#B8BCC8" style={{ marginTop: 10, fontSize: 16 }}>
-            Favorites and Recents are still available.
+            {t("Favorites and Recents are still available.")}
           </Txt>
         </Rise>
 
         <Rise index={3} style={{ flexDirection: "row", gap: 10, marginTop: 22 }}>
           <Button
-            label={checking ? "Checking…" : "Retry"}
+            label={checking ? t("Checking…") : t("Retry")}
             icon="refresh"
             variant="night"
             height={52}
@@ -172,7 +173,7 @@ export function OfflineHome() {
             disabled={checking}
           />
           <Button
-            label="Network settings"
+            label={t("Network settings")}
             variant="nightOutline"
             height={52}
             onPress={() => {
@@ -199,10 +200,10 @@ export function OfflineHome() {
               }}
             >
               <Txt variant="eyebrow" color={colors.nightFaint}>
-                On this device
+                {t("On this device")}
               </Txt>
               <Txt variant="caption" color={colors.nightFaint}>
-                Streams need a connection
+                {t("Streams need a connection")}
               </Txt>
             </Rise>
             <Rise index={5} style={{ marginTop: 6 }}>

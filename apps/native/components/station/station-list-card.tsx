@@ -12,6 +12,7 @@ import { useStationPlayback } from "@/hooks/use-station-playback";
 import { isUnavailable, stationGenres, stationPlace } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 function titleCase(value: string): string {
   return value.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
@@ -39,10 +40,10 @@ export function StationListCard({ station, index = 0 }: { station: Station; inde
         onLongPress={openMenu}
         pressedScale={0.985}
         accessibilityRole="button"
-        accessibilityLabel={`${station.name}${place ? `, ${place}` : ""}${
-          unavailable ? ", offline right now" : ", live now"
-        }`}
-        accessibilityHint="Opens the station."
+        accessibilityLabel={[station.name, place, unavailable ? t("offline right now") : t("live now")]
+          .filter(Boolean)
+          .join(", ")}
+        accessibilityHint={t("Opens the station.")}
         style={{
           borderRadius: 24,
           padding: 12,
@@ -95,12 +96,12 @@ export function StationListCard({ station, index = 0 }: { station: Station; inde
               style={{ fontFamily: fonts.sansSemibold }}
             >
               {playing
-                ? "Playing"
+                ? t("Playing")
                 : playback === "loading"
-                  ? "Connecting…"
+                  ? t("Connecting…")
                   : unavailable
-                    ? "Offline right now"
-                    : "Live now"}
+                    ? t("Offline right now")
+                    : t("Live now")}
             </Txt>
           </View>
         </View>

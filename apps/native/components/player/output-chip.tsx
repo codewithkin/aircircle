@@ -6,6 +6,7 @@ import { canSwitchOutput, routeLabel, showOutputSwitcher, useAudioRoute } from "
 import type { AudioRouteKind } from "@/lib/audio-route";
 import { useToast } from "@/stores/toast";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const ICONS: Record<AudioRouteKind, IconName> = {
   speaker: "smartphone",
@@ -30,12 +31,12 @@ export function OutputChip({ translucent = false }: { translucent?: boolean }) {
     <PressableScale
       onPress={() => {
         if (!showOutputSwitcher()) {
-          useToast.getState().show({ message: "Couldn’t open the output switcher", icon: "error" });
+          useToast.getState().show({ message: t("Couldn’t open the output switcher"), icon: "error" });
         }
       }}
       accessibilityRole="button"
-      accessibilityLabel={`Audio output: ${label}`}
-      accessibilityHint="Opens the output switcher."
+      accessibilityLabel={t("Audio output: {{label}}", { label })}
+      accessibilityHint={t("Opens the output switcher.")}
       style={{
         height: 44,
         maxWidth: 132,

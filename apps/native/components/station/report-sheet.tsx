@@ -17,6 +17,7 @@ import type { ReportReason } from "@/stores/report";
 import { useToast } from "@/stores/toast";
 import { springs, timing } from "@/theme/motion";
 import { colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const TILES: { reason: ReportReason; icon: IconName }[] = [
   { reason: "no-play", icon: "volume_off" },
@@ -48,7 +49,7 @@ function ReasonTile({
       }}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
-      accessibilityLabel={REPORT_REASONS[reason]}
+      accessibilityLabel={t(REPORT_REASONS[reason])}
       style={{ flexBasis: wide ? "100%" : "48%", flexGrow: 1 }}
     >
       <MotiView
@@ -80,7 +81,7 @@ function ReasonTile({
           ) : null}
         </View>
         <Txt variant="label" color={fg} style={{ lineHeight: 17.5, flex: wide ? 1 : undefined }}>
-          {REPORT_REASONS[reason]}
+          {t(REPORT_REASONS[reason])}
         </Txt>
         {selected && wide ? <Icon name="check_circle" size={20} color={fg} filled /> : null}
       </MotiView>
@@ -121,17 +122,17 @@ export function ReportSheet() {
     close();
     useToast.getState().show(
       sent
-        ? { message: "Report ready in your mail app", icon: "check_circle" }
-        : { message: "No mail app found to send the report", icon: "error" },
+        ? { message: t("Report ready in your mail app"), icon: "check_circle" }
+        : { message: t("No mail app found to send the report"), icon: "error" },
     );
   };
 
   return (
-    <Sheet visible={station !== null} onClose={close} accessibilityLabel="Report a problem">
+    <Sheet visible={station !== null} onClose={close} accessibilityLabel={t("Report a problem")}>
       {shown ? (
         <View>
           <Txt variant="titleSm" accessibilityRole="header">
-            Report a problem
+            {t("Report a problem")}
           </Txt>
           <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 6 }} numberOfLines={1}>
             {[shown.name, stationPlace(shown)].filter(Boolean).join(" · ")}
@@ -161,11 +162,11 @@ export function ReportSheet() {
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Add details (optional)"
+            placeholder={t("Add details (optional)")}
             placeholderTextColor={colors.inkFaint}
             multiline
             maxLength={500}
-            accessibilityLabel="Details, optional"
+            accessibilityLabel={t("Details, optional")}
             style={{
               marginTop: 14,
               height: 84,
@@ -182,11 +183,11 @@ export function ReportSheet() {
           />
 
           <Txt variant="caption" color={colors.inkFaint} style={{ marginTop: 12, lineHeight: 19 }}>
-            Your report includes the station and the last playback error. No account needed.
+            {t("Your report includes the station and the last playback error. No account needed.")}
           </Txt>
 
           <Button
-            label="Send report"
+            label={t("Send report")}
             variant="alert"
             onPress={() => void submit()}
             containerStyle={{ marginTop: 16, marginBottom: 8 }}

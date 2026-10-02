@@ -25,6 +25,7 @@ import { useReport } from "@/stores/report";
 import { springs, timing } from "@/theme/motion";
 import { colors, shadows } from "@/theme/tokens";
 import type { Station } from "@/lib/types";
+import { t } from "@/lib/i18n";
 
 const MENU_WIDTH = 272;
 const MENU_HEIGHT = 370;
@@ -155,7 +156,7 @@ export function QuickActions() {
           <Pressable
             onPress={close}
             accessibilityRole="button"
-            accessibilityLabel="Close menu"
+            accessibilityLabel={t("Close menu")}
             style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(245,246,248,0.55)" }]}
           />
         </MotiView>
@@ -230,7 +231,7 @@ export function QuickActions() {
             highlighted
             filled
             icon={isPlaying ? "pause" : "play_arrow"}
-            label={isPlaying ? "Pause" : isCurrent ? "Resume" : "Play"}
+            label={isPlaying ? t("Pause") : isCurrent ? t("Resume") : t("Play")}
             onPress={run(() => {
               const player = usePlayer.getState();
               if (isCurrent) void player.toggle();
@@ -242,13 +243,13 @@ export function QuickActions() {
             icon="favorite"
             filled={isFavorite}
             iconColor={HEART_COLOR}
-            label={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+            label={isFavorite ? t("Remove from Favorites") : t("Add to Favorites")}
             onPress={run(() => useFavorites.getState().toggle(station))}
           />
           <MenuItem
             index={2}
             icon="info"
-            label="Station details"
+            label={t("Station details")}
             onPress={run(() => {
               rememberStation(station);
               router.push({ pathname: "/station/[id]", params: { id: station.stationuuid } });
@@ -257,14 +258,14 @@ export function QuickActions() {
           <MenuItem
             index={3}
             icon="ios_share"
-            label="Share"
+            label={t("Share")}
             onPress={run(() => void shareStation(station))}
           />
           {isRecent ? (
             <MenuItem
               index={4}
               icon="history"
-              label="Remove from Recents"
+              label={t("Remove from Recents")}
               onPress={run(() => useRecents.getState().remove(station.stationuuid))}
             />
           ) : null}
@@ -272,7 +273,7 @@ export function QuickActions() {
             <MenuItem
               index={5}
               icon="close"
-              label="Forget this station"
+              label={t("Forget this station")}
               onPress={run(() => usePlayer.getState().dismiss())}
             />
           ) : (
@@ -280,7 +281,7 @@ export function QuickActions() {
               index={5}
               icon="flag"
               color="#AC1922"
-              label="Report"
+              label={t("Report")}
               onPress={run(() => useReport.getState().open(station))}
             />
           )}

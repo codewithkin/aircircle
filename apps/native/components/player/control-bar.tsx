@@ -16,6 +16,7 @@ import { usePlayer } from "@/stores/player";
 import { useReport } from "@/stores/report";
 import { useSleepTimer } from "@/stores/sleep-timer";
 import { colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 function BarButton({
   icon,
@@ -82,8 +83,8 @@ export function ControlBar({ station }: { station: Station }) {
         icon="bedtime"
         label={
           timerEndsAt
-            ? `Sleep timer, ${formatRemaining(timerEndsAt - now)} left`
-            : "Set a sleep timer"
+            ? t("Sleep timer, {{time}} left", { time: formatRemaining(timerEndsAt - now) })
+            : t("Set a sleep timer")
         }
         caption={timerEndsAt ? formatRemaining(timerEndsAt - now) : undefined}
         onPress={() => router.push("/sleep-timer")}
@@ -95,12 +96,12 @@ export function ControlBar({ station }: { station: Station }) {
         size={72}
         state={loading ? "loading" : playing ? "pause" : "play"}
         onPress={() => void usePlayer.getState().toggle()}
-        accessibilityLabel={playing ? `Pause ${station.name}` : `Play ${station.name}`}
+        accessibilityLabel={playing ? t("Pause {{name}}", { name: station.name }) : t("Play {{name}}", { name: station.name })}
       />
 
       <BarButton
         icon="ios_share"
-        label={`Share ${station.name}`}
+        label={t("Share {{name}}", { name: station.name })}
         onPress={() => {
           // A fresh title is offered as an opt-in, never included by default.
           share(station, useNowPlaying.getState().title);
@@ -109,7 +110,7 @@ export function ControlBar({ station }: { station: Station }) {
 
       <BarButton
         icon="flag"
-        label={`Report a problem with ${station.name}`}
+        label={t("Report a problem with {{name}}", { name: station.name })}
         onPress={() => useReport.getState().open(station)}
       />
     </View>

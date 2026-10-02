@@ -13,6 +13,7 @@ import { stationPlace } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /**
  * The featured station on Home: a warm card with one clear Listen button.
@@ -31,8 +32,8 @@ export function HeroCard({ station }: { station: Station }) {
       onLongPress={openMenu}
       pressedScale={0.985}
       accessibilityRole="button"
-      accessibilityLabel={`Featured station: ${station.name}${place ? `, ${place}` : ""}`}
-      accessibilityHint="Opens the station."
+      accessibilityLabel={[t("Featured station: {{name}}", { name: station.name }), place].filter(Boolean).join(", ")}
+      accessibilityHint={t("Opens the station.")}
     >
       <View ref={anchorRef} collapsable={false}>
         <Gradient
@@ -72,7 +73,7 @@ export function HeroCard({ station }: { station: Station }) {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.onInk }} />
             <Txt variant="eyebrow" color={colors.onInk}>
-              Live now · For you
+              {t("Live now · For you")}
             </Txt>
           </View>
 
@@ -99,7 +100,7 @@ export function HeroCard({ station }: { station: Station }) {
                 numberOfLines={1}
                 style={{ flexShrink: 1, opacity: 0.9 }}
               >
-                {place || "Live radio"}
+                {place || t("Live radio")}
               </Txt>
             </View>
 
@@ -111,7 +112,7 @@ export function HeroCard({ station }: { station: Station }) {
               }}
               haptic="confirm"
               accessibilityRole="button"
-              accessibilityLabel={playing ? `Pause ${station.name}` : `Listen to ${station.name}`}
+              accessibilityLabel={playing ? t("Pause {{name}}", { name: station.name }) : t("Listen to {{name}}", { name: station.name })}
               style={{
                 height: 44,
                 borderRadius: 22,
@@ -130,7 +131,7 @@ export function HeroCard({ station }: { station: Station }) {
                 size={22}
                 filled
               />
-              <Txt variant="bodyLg">{playing ? "Pause" : "Listen"}</Txt>
+              <Txt variant="bodyLg">{playing ? t("Pause") : t("Listen")}</Txt>
             </PressableScale>
           </View>
         </Gradient>

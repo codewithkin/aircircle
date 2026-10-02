@@ -27,6 +27,7 @@ import { usePlayer } from "@/stores/player";
 import { useToast } from "@/stores/toast";
 import { springs, timing } from "@/theme/motion";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** How far down the card must be dragged before letting go stops playback. */
 const STOP_THRESHOLD = 44;
@@ -83,9 +84,9 @@ export function MiniPlayer() {
     if (!stopped) return;
 
     useToast.getState().show({
-      message: `Stopped ${stopped.name}`,
+      message: t("Stopped {{name}}", { name: stopped.name }),
       icon: "stop",
-      actionLabel: "Undo",
+      actionLabel: t("Undo"),
       // Undo restarts only because the listener tapped it — never on its own.
       onAction: () => void usePlayer.getState().resume(),
     });
@@ -152,7 +153,7 @@ export function MiniPlayer() {
         >
           <Icon name="stop" size={16} color={colors.onInk} filled />
           <Txt variant="captionMedium" color={colors.onInk}>
-            Release to stop
+            {t("Release to stop")}
           </Txt>
         </View>
       </MotiView>
@@ -164,7 +165,7 @@ export function MiniPlayer() {
             pressedScale={0.985}
             accessibilityRole="button"
             accessibilityLabel={`${shown.name}. ${line.text}`}
-            accessibilityHint="Opens Now Playing. Swipe down to stop."
+            accessibilityHint={t("Opens Now Playing. Swipe down to stop.")}
             style={{
               marginTop: 8,
               marginHorizontal: 12,
@@ -207,7 +208,7 @@ export function MiniPlayer() {
               size={48}
               state={buttonState}
               onPress={() => void usePlayer.getState().toggle()}
-              accessibilityLabel={status === "playing" ? `Pause ${shown.name}` : `Play ${shown.name}`}
+              accessibilityLabel={status === "playing" ? t("Pause {{name}}", { name: shown.name }) : t("Play {{name}}", { name: shown.name })}
             />
           </PressableScale>
         </Animated.View>

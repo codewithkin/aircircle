@@ -15,6 +15,7 @@ import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
 import { colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /** How far the artwork must be dragged sideways to change station. */
 const SWIPE_DISTANCE = 90;
@@ -76,7 +77,7 @@ export function SwipeableArt({ station, size, playing }: SwipeableArtProps) {
           accessible={canSwipe}
           accessibilityRole={canSwipe ? "adjustable" : undefined}
           accessibilityLabel={
-            canSwipe ? `Favorite ${index + 1} of ${favorites.length}: ${station.name}` : undefined
+            canSwipe ? t("Favorite {{position}} of {{count}}: {{name}}", { position: index + 1, count: favorites.length, name: station.name }) : undefined
           }
           accessibilityActions={canSwipe ? [{ name: "increment" }, { name: "decrement" }] : undefined}
           onAccessibilityAction={(e) => move(e.nativeEvent.actionName === "increment" ? 1 : -1)}

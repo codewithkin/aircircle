@@ -9,6 +9,7 @@ import { Txt } from "@/components/ui/txt";
 import { stationGenres } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /**
  * "Find another station like this" — the one next step offered under the last
@@ -22,9 +23,13 @@ export function SimilarCard({ station }: { station: Station }) {
   // Nothing to be "like" without a genre or a place.
   if (!tag && !station.country) return null;
 
-  const detail = [genre ? `More ${genre.toLowerCase()}` : "More stations", station.country ? `from ${station.country}` : ""]
-    .filter(Boolean)
-    .join(" ");
+  const kind = genre.toLowerCase();
+  const detail =
+    genre && station.country
+      ? t("More {{genre}} from {{country}}", { genre: kind, country: station.country })
+      : genre
+        ? t("More {{genre}}", { genre: kind })
+        : t("More stations from {{country}}", { country: station.country ?? "" });
 
   return (
     <PressableScale
@@ -32,7 +37,7 @@ export function SimilarCard({ station }: { station: Station }) {
         router.push({
           pathname: "/stations",
           params: {
-            title: genre || station.country || "Stations",
+            title: genre || station.country || t("Stations"),
             ...(tag ? { tag } : {}),
             ...(station.country ? { country: station.country } : {}),
             ...(station.countryCode ? { code: station.countryCode } : {}),
@@ -41,7 +46,7 @@ export function SimilarCard({ station }: { station: Station }) {
       }
       pressedScale={0.985}
       accessibilityRole="button"
-      accessibilityLabel={`Find another station like this. ${detail}`}
+      accessibilityLabel={t("Find another station like this. {{detail}}", { detail })}
     >
       <Gradient
         colors={["#CDEEFC", "#EAEDFF"]}
@@ -76,7 +81,7 @@ export function SimilarCard({ station }: { station: Station }) {
           ))}
         </View>
         <View style={{ flex: 1, gap: 4 }}>
-          <Txt variant="bodyLg">Find another station like this</Txt>
+          <Txt variant="bodyLg">{t("Find another station like this")}</Txt>
           <Txt variant="caption" color={colors.inkSoft} numberOfLines={1}>
             {detail}
           </Txt>

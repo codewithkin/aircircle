@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Txt } from "@/components/ui/txt";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 export type FilterKey = "country" | "genre" | "language";
 
@@ -37,41 +38,41 @@ export function FiltersSheet({ visible, onClose, filters, onPick, onClear, onBro
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} accessibilityLabel="Filters">
+    <Sheet visible={visible} onClose={onClose} accessibilityLabel={t("Filters")}>
       <Txt variant="titleSm" accessibilityRole="header">
-        Filters
+        {t("Filters")}
       </Txt>
       <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 6 }}>
-        Narrow results by where a station is, what it plays, or what it speaks.
+        {t("Narrow results by where a station is, what it plays, or what it speaks.")}
       </Txt>
 
       <View style={{ marginTop: 10 }}>
         <ActionRow
           icon="place"
           tone="signal"
-          title="Country"
-          subtitle={filters.country ? titleCase(filters.country) : "Any country"}
+          title={t("Country")}
+          subtitle={filters.country ? titleCase(filters.country) : t("Any country")}
           onPress={pick("country")}
         />
         <ActionRow
           icon="music_note"
           tone="violet"
-          title="Genre"
-          subtitle={filters.genre ? titleCase(filters.genre) : "Any genre"}
+          title={t("Genre")}
+          subtitle={filters.genre ? titleCase(filters.genre) : t("Any genre")}
           onPress={pick("genre")}
         />
         <ActionRow
           icon="translate"
           tone="ok"
-          title="Language"
-          subtitle={filters.language ? titleCase(filters.language) : "Any language"}
+          title={t("Language")}
+          subtitle={filters.language ? titleCase(filters.language) : t("Any language")}
           onPress={pick("language")}
         />
         <ActionRow
           icon="explore"
           tone="neutral"
-          title="Browse instead"
-          subtitle="Lists of countries, cities, languages and genres"
+          title={t("Browse instead")}
+          subtitle={t("Lists of countries, cities, languages and genres")}
           divider={false}
           onPress={() => {
             onClose();
@@ -82,7 +83,7 @@ export function FiltersSheet({ visible, onClose, filters, onPick, onClear, onBro
 
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14, marginBottom: 8 }}>
         <Button
-          label="Clear all"
+          label={t("Clear all")}
           variant="outline"
           height={52}
           disabled={!anySet}
@@ -91,7 +92,7 @@ export function FiltersSheet({ visible, onClose, filters, onPick, onClear, onBro
             onClose();
           }}
         />
-        <Button label="Done" variant="signal" height={52} grow onPress={onClose} />
+        <Button label={t("Done")} variant="signal" height={52} grow onPress={onClose} />
       </View>
     </Sheet>
   );

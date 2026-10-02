@@ -9,6 +9,7 @@ import { useFavorites } from "@/stores/favorites";
 import { useToast } from "@/stores/toast";
 import { springs } from "@/theme/motion";
 import { colors } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 /** The pink used for a saved heart on light surfaces. */
 export const HEART_COLOR = "#AE316E";
@@ -47,9 +48,9 @@ export function HeartButton({
         // Only saving is confirmed; the heart emptying says enough for a removal.
         if (!saved) {
           useToast.getState().show({
-            message: "Saved to Favorites · on this device",
+            message: t("Saved to Favorites · on this device"),
             icon: "favorite",
-            actionLabel: "View",
+            actionLabel: t("View"),
             onAction: () => router.navigate("/favorites"),
           });
         }
@@ -58,7 +59,7 @@ export function HeartButton({
       pressedScale={0.88}
       accessibilityRole="button"
       accessibilityLabel={
-        saved ? `Remove ${station.name} from Favorites` : `Add ${station.name} to Favorites`
+        saved ? t("Remove {{name}} from Favorites", { name: station.name }) : t("Add {{name}} to Favorites", { name: station.name })
       }
       accessibilityState={{ selected: saved }}
       style={{

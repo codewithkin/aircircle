@@ -13,6 +13,7 @@ import type { Station } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 import { UNAVAILABLE_ART_COLORS, stationArt } from "@/theme/station-art";
 import { colors, fonts } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type PresetProps = {
   station: Station;
@@ -46,9 +47,9 @@ function Preset({ station, index, onLongPress }: PresetProps) {
         haptic="confirm"
         accessibilityRole="button"
         accessibilityLabel={`Preset ${index + 1}: ${station.name}${
-          unavailable ? ", needs attention" : active ? ", playing" : ""
+          unavailable ? t(", needs attention") : active ? t(", playing") : ""
         }`}
-        accessibilityHint="Plays the station. Long press to reorder."
+        accessibilityHint={t("Plays the station. Long press to reorder.")}
         style={{
           borderRadius: 31,
           padding: 3,
@@ -105,7 +106,7 @@ function Preset({ station, index, onLongPress }: PresetProps) {
               >
                 <Icon name="error" size={14} color={colors.amber} />
                 <Txt variant="tab" color={colors.amber} style={{ fontFamily: fonts.sansSemibold }}>
-                  Needs attention
+                  {t("Needs attention")}
                 </Txt>
               </View>
             ) : active ? (
@@ -122,7 +123,7 @@ function Preset({ station, index, onLongPress }: PresetProps) {
                 }}
               >
                 <EqBars size={14} active={playback === "playing"} />
-                <Txt variant="tab">{playback === "playing" ? "Playing" : "Connecting"}</Txt>
+                <Txt variant="tab">{playback === "playing" ? t("Playing") : t("Connecting")}</Txt>
               </View>
             ) : null}
           </View>
@@ -138,7 +139,7 @@ function Preset({ station, index, onLongPress }: PresetProps) {
             </Txt>
             {unavailable ? (
               <Txt variant="tab" color={colors.ink} style={{ opacity: 0.8 }}>
-                Tap to retry or remove
+                {t("Tap to retry or remove")}
               </Txt>
             ) : null}
           </View>

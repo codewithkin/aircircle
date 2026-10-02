@@ -7,6 +7,7 @@ import { PressableScale } from "@/components/ui/pressable-scale";
 import { Rise } from "@/components/ui/rise";
 import { Txt } from "@/components/ui/txt";
 import { colors, fonts } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 type Genre = {
   name: string;
@@ -28,7 +29,7 @@ export const GENRES: Genre[] = [
     angle: 165,
     icon: "piano",
     iconColor: "#89CEF6",
-    blurb: "Late sets, standards",
+    blurb: msg("Late sets, standards"),
   },
   { name: "News", colors: ["#DA4339", "#DA4339"], icon: "newspaper", iconColor: "rgba(255,255,255,0.5)" },
   {
@@ -43,7 +44,7 @@ export const GENRES: Genre[] = [
     icon: "music_note",
     iconColor: "#733D00",
     dark: true,
-    blurb: "Orchestral, choral, early music",
+    blurb: msg("Orchestral, choral, early music"),
   },
   { name: "Talk", colors: ["#008388", "#008388"], icon: "forum", iconColor: "rgba(255,255,255,0.88)" },
   { name: "Community", colors: ["#33854A", "#33854A"], icon: "groups", iconColor: "rgba(255,255,255,0.6)" },
@@ -53,7 +54,7 @@ export const GENRES: Genre[] = [
     angle: 115,
     icon: "album",
     iconColor: "rgba(23,24,28,0.75)",
-    blurb: "Pop, rock, electronic, world",
+    blurb: msg("Pop, rock, electronic, world"),
   },
   { name: "Student/College", colors: ["#2D4E78", "#2D4E78"], icon: "school", iconColor: "#ECC980" },
   {
@@ -90,8 +91,8 @@ function Tile({
       <PressableScale
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${genre.name}${picked ? ", your pick" : ""}`}
-        accessibilityHint="Shows stations in this genre."
+        accessibilityLabel={[t(genre.name), picked ? t("your pick") : ""].filter(Boolean).join(", ")}
+        accessibilityHint={t("Shows stations in this genre.")}
       >
         <Gradient
           colors={genre.colors}
@@ -131,17 +132,17 @@ function Tile({
             >
               <Icon name="check" size={13} />
               <Txt variant="tab" style={{ fontFamily: fonts.sansSemibold, fontSize: 11 }}>
-                Your pick
+                {t("Your pick")}
               </Txt>
             </View>
           ) : null}
 
           <Txt color={fg} style={{ fontFamily: fonts.sansSemibold, fontSize: 19, lineHeight: 21, letterSpacing: -0.19 }}>
-            {genre.name}
+            {t(genre.name)}
           </Txt>
           {genre.blurb && (tall || !picked) ? (
             <Txt variant="tab" color={fg} numberOfLines={1} style={{ marginTop: 4, opacity: 0.85 }}>
-              {genre.blurb}
+              {t(genre.blurb)}
             </Txt>
           ) : null}
         </Gradient>

@@ -12,6 +12,7 @@ import { isUnavailable, stationLocality, stationShortSubtitle } from "@/lib/stat
 import type { Station } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type StationTileProps = {
   station: Station;
@@ -34,8 +35,8 @@ export function StationTile({ station, index = 0, size = 132 }: StationTileProps
         onPress={play}
         onLongPress={openMenu}
         accessibilityRole="button"
-        accessibilityLabel={`Play ${station.name}`}
-        accessibilityHint="Long press for more actions."
+        accessibilityLabel={t("Play {{name}}", { name: station.name })}
+        accessibilityHint={t("Long press for more actions.")}
         style={{ width: size, gap: 6 }}
       >
         <View ref={anchorRef} collapsable={false}>
@@ -70,8 +71,8 @@ export function StationCard({ station, index = 0 }: { station: Station; index?: 
         onPress={open}
         onLongPress={openMenu}
         accessibilityRole="button"
-        accessibilityLabel={`${station.name}${subtitle ? `, ${subtitle}` : ""}`}
-        accessibilityHint="Opens the station."
+        accessibilityLabel={[station.name, subtitle].filter(Boolean).join(", ")}
+        accessibilityHint={t("Opens the station.")}
         style={{ width: 196, gap: 6 }}
       >
         <View ref={anchorRef} collapsable={false}>
@@ -89,7 +90,7 @@ export function StationCard({ station, index = 0 }: { station: Station; index?: 
                 else void player.toggle();
               }}
               accessibilityLabel={
-                playback === "playing" ? `Pause ${station.name}` : `Play ${station.name}`
+                playback === "playing" ? t("Pause {{name}}", { name: station.name }) : t("Play {{name}}", { name: station.name })
               }
             />
           </View>
@@ -102,7 +103,7 @@ export function StationCard({ station, index = 0 }: { station: Station; index?: 
             {subtitle}
           </Txt>
         ) : null}
-        <StationStatus station={station} liveLabel="Live now" />
+        <StationStatus station={station} liveLabel={t("Live now")} />
       </PressableScale>
     </Rise>
   );

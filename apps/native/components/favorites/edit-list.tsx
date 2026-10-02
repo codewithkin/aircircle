@@ -22,6 +22,7 @@ import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { timing } from "@/theme/motion";
 import { colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const ROW_HEIGHT = 72;
 const ROW_GAP = 8;
@@ -133,7 +134,7 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
         haptic="confirm"
         hitSlop={10}
         accessibilityRole="button"
-        accessibilityLabel={`Remove ${station.name} from Favorites`}
+        accessibilityLabel={t("Remove {{name}} from Favorites", { name: station.name })}
         style={{
           width: 28,
           height: 28,
@@ -167,7 +168,7 @@ function Row({ station, index, count, activeIndex, dragY, onDrop, onRemove }: Ro
         <View
           accessible
           accessibilityRole="adjustable"
-          accessibilityLabel={`Reorder ${station.name}, position ${index + 1} of ${count}`}
+          accessibilityLabel={t("Reorder {{name}}, position {{position}} of {{count}}", { name: station.name, position: index + 1, count })}
           accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
           onAccessibilityAction={(e) => {
             // Screen readers move a row one place at a time instead of dragging.
@@ -243,17 +244,17 @@ function RemovedRow({
         </View>
         <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
           <Txt variant="bodyMedium" color={colors.onInk} numberOfLines={1}>
-            {station.name} removed
+            {t("{{name}} removed", { name: station.name })}
           </Txt>
           <Txt variant="caption" color="rgba(255,255,255,0.88)" accessibilityLiveRegion="polite">
-            Gone from Favorites in {secondsLeft} s
+            {t("Gone from Favorites in {{seconds}} s", { seconds: secondsLeft })}
           </Txt>
         </View>
         <PressableScale
           onPress={onUndo}
           haptic="confirm"
           accessibilityRole="button"
-          accessibilityLabel={`Undo removing ${station.name}`}
+          accessibilityLabel={t("Undo removing {{name}}", { name: station.name })}
           style={{
             height: 42,
             borderRadius: 21,
@@ -267,7 +268,7 @@ function RemovedRow({
         >
           <Icon name="undo" size={18} color="#B00A1D" />
           <Txt variant="label" color="#B00A1D" style={{ fontFamily: fonts.sansSemibold }}>
-            Undo
+            {t("Undo")}
           </Txt>
         </PressableScale>
       </Gradient>

@@ -10,6 +10,7 @@ import { usePresence } from "@/hooks/use-presence";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { springs, timing } from "@/theme/motion";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type SheetProps = {
   visible: boolean;
@@ -62,7 +63,7 @@ export function Sheet({ visible, onClose, children, accessibilityLabel }: SheetP
             style={{ flex: 1 }}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel={t("Close")}
           />
         </MotiView>
 

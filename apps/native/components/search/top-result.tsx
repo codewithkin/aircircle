@@ -13,6 +13,7 @@ import type { Station } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 import { UNAVAILABLE_ART_COLORS, stationArt } from "@/theme/station-art";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /**
  * The best match for a search, given a card of its own. It can be saved or
@@ -31,8 +32,8 @@ export function TopResult({ station }: { station: Station }) {
       onLongPress={openMenu}
       pressedScale={0.985}
       accessibilityRole="button"
-      accessibilityLabel={`Top result: ${station.name}${subtitle ? `, ${subtitle}` : ""}`}
-      accessibilityHint="Opens the station."
+      accessibilityLabel={[t("Top result: {{name}}", { name: station.name }), subtitle].filter(Boolean).join(", ")}
+      accessibilityHint={t("Opens the station.")}
     >
       <View ref={anchorRef} collapsable={false}>
         <Gradient
@@ -82,12 +83,12 @@ export function TopResult({ station }: { station: Station }) {
               {playing ? <EqBars size={18} color={colors.onInk} /> : null}
               <Txt variant="label" color={colors.onInk}>
                 {playing
-                  ? "Playing now"
+                  ? t("Playing now")
                   : playback === "loading"
-                    ? "Connecting…"
+                    ? t("Connecting…")
                     : unavailable
-                      ? "Offline right now"
-                      : "Live now"}
+                      ? t("Offline right now")
+                      : t("Live now")}
               </Txt>
             </View>
 
@@ -109,7 +110,7 @@ export function TopResult({ station }: { station: Station }) {
                   if (playback === "idle") void player.play(station);
                   else void player.toggle();
                 }}
-                accessibilityLabel={playing ? `Pause ${station.name}` : `Play ${station.name}`}
+                accessibilityLabel={playing ? t("Pause {{name}}", { name: station.name }) : t("Play {{name}}", { name: station.name })}
               />
             </View>
           </View>

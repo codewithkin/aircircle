@@ -11,6 +11,7 @@ import { shareStation } from "@/lib/share";
 import { stationSubtitle } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type ShareState = {
   target: { station: Station; nowPlaying: string } | null;
@@ -51,11 +52,11 @@ export function ShareSheet() {
   }, [target]);
 
   return (
-    <Sheet visible={target !== null} onClose={close} accessibilityLabel="Share station">
+    <Sheet visible={target !== null} onClose={close} accessibilityLabel={t("Share station")}>
       {shown ? (
         <View>
           <Txt variant="titleSm" accessibilityRole="header">
-            Share station
+            {t("Share station")}
           </Txt>
 
           <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
@@ -65,7 +66,7 @@ export function ShareSheet() {
                 {shown.station.name}
               </Txt>
               <Txt variant="meta" color={colors.inkSoft} numberOfLines={1}>
-                {stationSubtitle(shown.station) || "Live radio"}
+                {stationSubtitle(shown.station) || t("Live radio")}
               </Txt>
             </View>
           </View>
@@ -82,16 +83,16 @@ export function ShareSheet() {
             }}
           >
             <View style={{ flex: 1, gap: 3 }}>
-              <Txt variant="bodyLg">Include what’s playing</Txt>
+              <Txt variant="bodyLg">{t("Include what’s playing")}</Txt>
               <Txt variant="caption" color={colors.inkSoft} numberOfLines={2}>
                 {shown.nowPlaying}
               </Txt>
             </View>
-            <Toggle value={include} onChange={setInclude} accessibilityLabel="Include what’s playing" />
+            <Toggle value={include} onChange={setInclude} accessibilityLabel={t("Include what’s playing")} />
           </View>
 
           <Button
-            label="Share"
+            label={t("Share")}
             icon="ios_share"
             onPress={() => {
               const { station, nowPlaying } = shown;

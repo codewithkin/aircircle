@@ -26,12 +26,13 @@ import { useReport } from "@/stores/report";
 import { useSleepTimer } from "@/stores/sleep-timer";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 /* ------------------------------------------------------------------------ *
  * Connecting
  * ------------------------------------------------------------------------ */
 
-const STEPS = ["Connecting", "Buffering", "Playing"] as const;
+const STEPS = [msg("Connecting"), msg("Buffering"), msg("Playing")] as const;
 
 /**
  * The first few seconds after Play: the station stays in view and three steps
@@ -88,10 +89,10 @@ export function ConnectingView({ station, status }: { station: Station; status: 
           style={{ textAlign: "center" }}
         >
           {usingFallback
-            ? "Trying an alternate stream…"
+            ? t("Trying an alternate stream…")
             : status === "buffering"
-              ? "Waiting for the live stream…"
-              : `Connecting to ${station.name}…`}
+              ? t("Waiting for the live stream…")
+              : t("Connecting to {{name}}…", { name: station.name })}
         </Txt>
       </Rise>
       {subtitle ? (
@@ -152,7 +153,7 @@ export function ConnectingView({ station, status }: { station: Station; status: 
                   ) : null}
                 </MotiView>
                 <Txt variant="captionMedium" color={colors.onInk} style={{ opacity: active || done ? 1 : 0.6 }}>
-                  {step}
+                  {t(step)}
                 </Txt>
               </View>
             </View>
@@ -164,11 +165,11 @@ export function ConnectingView({ station, status }: { station: Station; status: 
 
       <Rise index={3} style={{ alignSelf: "center", marginBottom: 16 }}>
         <Button
-          label="Cancel"
+          label={t("Cancel")}
           variant="nightOutline"
           height={52}
           onPress={() => usePlayer.getState().stop()}
-          accessibilityLabel={`Cancel connecting to ${station.name}`}
+          accessibilityLabel={t("Cancel connecting to {{name}}", { name: station.name })}
         />
       </Rise>
     </View>
@@ -220,15 +221,16 @@ export function ReconnectingView({ station }: { station: Station }) {
       >
         <Icon name="sync" size={16} color={colors.amber} />
         <Txt variant="eyebrow" color={colors.amber} style={{ letterSpacing: 0.72 }}>
-          Reconnecting
+          {t("Reconnecting")}
         </Txt>
       </Rise>
 
       <Rise index={1} style={{ marginTop: 16 }}>
         <Txt variant="display" accessibilityRole="header" accessibilityLiveRegion="polite">
-          Connection lost.{"\n"}
+          {t("Connection lost.")}
+          {"\n"}
           <Txt variant="display" style={{ fontFamily: fonts.serifItalic }}>
-            Retrying…
+            {t("Retrying…")}
           </Txt>
         </Txt>
       </Rise>
@@ -242,14 +244,14 @@ export function ReconnectingView({ station }: { station: Station }) {
 
       <Rise index={3} style={{ flexDirection: "row", gap: 10, marginTop: 22 }}>
         <Button
-          label="Retry now"
+          label={t("Retry now")}
           icon="refresh"
           variant="amber"
           grow
           onPress={() => void usePlayer.getState().retry()}
         />
         <Button
-          label="Stop"
+          label={t("Stop")}
           icon="stop"
           iconFilled
           variant="amberOutline"
@@ -271,14 +273,16 @@ export function ReconnectingView({ station }: { station: Station }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Icon name="info" size={20} color={colors.inkSoft} />
           <Txt variant="meta" style={{ flex: 1 }}>
-            Audio resumes on its own when the stream returns.
+            {t("Audio resumes on its own when the stream returns.")}
           </Txt>
         </View>
         {timerEndsAt ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Icon name="bedtime" size={20} color={colors.amber} />
             <Txt variant="meta" style={{ flex: 1 }}>
-              Sleep timer still set · stops in {formatRemaining(timerEndsAt - now)}
+              {t("Sleep timer still set · stops in {{time}}", {
+                time: formatRemaining(timerEndsAt - now),
+              })}
             </Txt>
           </View>
         ) : null}
@@ -344,7 +348,7 @@ export function FailureView({ station, error }: { station: Station; error: Playb
 
         <Rise style={{ marginTop: 22 }}>
           <Txt variant="eyebrow" color={colors.alert}>
-            {copy.label}
+            {t(copy.label)}
           </Txt>
         </Rise>
         <Rise index={1} style={{ marginTop: 12 }}>
@@ -360,14 +364,14 @@ export function FailureView({ station, error }: { station: Station; error: Playb
         </Rise>
         <Rise index={3}>
           <Txt variant="meta" color={colors.inkSoft} style={{ marginTop: 6, lineHeight: 20 }}>
-            {copy.detail}
+            {t(copy.detail)}
           </Txt>
         </Rise>
 
         <Rise index={4} style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
           {canRetry ? (
             <Button
-              label="Retry"
+              label={t("Retry")}
               icon="refresh"
               variant="alert"
               height={52}
@@ -376,7 +380,7 @@ export function FailureView({ station, error }: { station: Station; error: Playb
             />
           ) : (
             <Button
-              label="Browse alternatives"
+              label={t("Browse alternatives")}
               variant="signal"
               height={52}
               grow
@@ -385,7 +389,7 @@ export function FailureView({ station, error }: { station: Station; error: Playb
           )}
           {isRecording ? null : (
             <Button
-              label="Report"
+              label={t("Report")}
               icon="flag"
               variant="alertOutline"
               height={52}
@@ -399,8 +403,8 @@ export function FailureView({ station, error }: { station: Station; error: Playb
         <>
           <Rise index={5} style={{ marginTop: 26, paddingHorizontal: GUTTER }}>
             <SectionHeader
-              title="Choose another station"
-              actionLabel="Browse"
+              title={t("Choose another station")}
+              actionLabel={t("Browse")}
               onAction={() => router.replace("/browse")}
             />
           </Rise>

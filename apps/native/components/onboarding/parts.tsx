@@ -13,6 +13,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { haptics } from "@/lib/haptics";
 import { springs, timing } from "@/theme/motion";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type OnboardingHeaderProps = {
   onBack?: () => void;
@@ -42,7 +43,7 @@ export function OnboardingHeader({ onBack, step, skipLabel, onSkip, onDark }: On
           <IconButton
             icon="arrow_back"
             color={onDark ? colors.onInk : colors.ink}
-            accessibilityLabel="Back"
+            accessibilityLabel={t("Back")}
             onPress={onBack}
           />
         ) : null}
@@ -52,7 +53,7 @@ export function OnboardingHeader({ onBack, step, skipLabel, onSkip, onDark }: On
         <View
           accessible
           accessibilityRole="progressbar"
-          accessibilityLabel={`Step ${step} of 2`}
+          accessibilityLabel={t("Step {{step}} of 2", { step })}
           style={{ flexDirection: "row", gap: 6 }}
         >
           {[1, 2].map((n) => (

@@ -15,6 +15,7 @@ import { useNowPlaying } from "@/stores/now-playing";
 import { useRecordings } from "@/stores/recordings";
 import { timing } from "@/theme/motion";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 const CARD = {
   borderRadius: 22,
@@ -35,7 +36,7 @@ export function OnAirCard() {
 
   return (
     <View style={[CARD, { minHeight: 92, justifyContent: "center" }]} accessibilityLiveRegion="polite">
-      <Eyebrow>On air</Eyebrow>
+      <Eyebrow>{t("On air")}</Eyebrow>
       {/* Keyed by title so a new song cross-fades in rather than snapping. */}
       <MotiView
         key={title ?? "none"}
@@ -57,7 +58,7 @@ export function OnAirCard() {
           </>
         ) : (
           <Txt variant="meta" color={colors.inkSoft}>
-            Now playing information unavailable.
+            {t("Now playing information unavailable.")}
           </Txt>
         )}
       </MotiView>
@@ -98,18 +99,18 @@ export function RecordingCard() {
       <View style={{ flex: 1, gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <LiveDot size={8} pulse />
-          <Eyebrow color="#AC1922">Recording</Eyebrow>
+          <Eyebrow color="#AC1922">{t("Recording")}</Eyebrow>
         </View>
         <Txt
           variant="titleSm"
-          accessibilityLabel={`Recording, ${Math.floor(elapsed / 60)} minutes ${Math.floor(elapsed % 60)} seconds`}
+          accessibilityLabel={t("Recording, {{count}} minutes {{count2}} seconds", { count: Math.floor(elapsed / 60), count2: Math.floor(elapsed % 60) })}
           style={{ fontSize: 20, lineHeight: 22, fontVariant: ["tabular-nums"] }}
         >
           {formatClock(elapsed)}
         </Txt>
         <Txt variant="caption" color={colors.inkSoft} numberOfLines={1}>
-          {bytes > 0 ? formatBytes(bytes) : "Starting…"}
-          {free !== null ? ` · ${formatBytes(free)} free on this device` : ""}
+          {bytes > 0 ? formatBytes(bytes) : t("Starting…")}
+          {free !== null ? t(" · {{size}} free on this device", { size: formatBytes(free) }) : ""}
         </Txt>
       </View>
 
@@ -117,7 +118,7 @@ export function RecordingCard() {
         onPress={() => void useRecordings.getState().stop()}
         haptic="confirm"
         accessibilityRole="button"
-        accessibilityLabel="Stop recording"
+        accessibilityLabel={t("Stop recording")}
         style={{
           height: 44,
           borderRadius: 22,
@@ -131,7 +132,7 @@ export function RecordingCard() {
       >
         <Icon name="stop" size={18} color="#AC1922" filled />
         <Txt variant="label" color="#AC1922">
-          Stop
+          {t("Stop")}
         </Txt>
       </PressableScale>
     </View>
@@ -142,13 +143,18 @@ export function RecordingCard() {
 export function RecordedCard({ recording, position }: { recording: Recording; position: number }) {
   return (
     <View style={[CARD, { minHeight: 92, justifyContent: "center", gap: 4 }]}>
-      <Eyebrow>Saved recording</Eyebrow>
+      <Eyebrow>{t("Saved recording")}</Eyebrow>
       <Txt variant="heading" style={{ marginTop: 4, fontVariant: ["tabular-nums"] }}>
-        {formatClock(position)} of about {formatDuration(recording.durationMs)}
+        {t("{{time}} of about {{duration}}", {
+          time: formatClock(position),
+          duration: formatDuration(recording.durationMs),
+        })}
       </Txt>
       <Txt variant="meta" color={colors.inkSoft}>
-        Recorded {formatDay(recording.recordedAt)} · {formatBytes(recording.sizeBytes)} · Available
-        offline
+        {t("Recorded {{day}} · {{size}} · Available offline", {
+          day: formatDay(recording.recordedAt),
+          size: formatBytes(recording.sizeBytes),
+        })}
       </Txt>
     </View>
   );

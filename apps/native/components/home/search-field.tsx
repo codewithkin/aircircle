@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { Txt } from "@/components/ui/txt";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type SearchFieldProps = {
   onPress: () => void;
@@ -39,8 +40,8 @@ export function SearchField({ onPress, onNearbyPress }: SearchFieldProps) {
           onPress={onPress}
           pressedScale={0.985}
           accessibilityRole="search"
-          accessibilityLabel="Search live radio"
-          accessibilityHint="Search by station, city or genre."
+          accessibilityLabel={t("Search live radio")}
+          accessibilityHint={t("Search by station, city or genre.")}
           containerStyle={{ flex: 1 }}
           style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
         >
@@ -58,9 +59,9 @@ export function SearchField({ onPress, onNearbyPress }: SearchFieldProps) {
             <Icon name="search" size={22} color={colors.onInk} />
           </Gradient>
           <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-            <Txt variant="bodyLg">Search live radio</Txt>
+            <Txt variant="bodyLg">{t("Search live radio")}</Txt>
             <Txt variant="caption" color={colors.inkSoft} numberOfLines={1}>
-              Try “BBC World Service” or “jazz”
+              {t("Try “BBC World Service” or “jazz”")}
             </Txt>
           </View>
         </PressableScale>
@@ -71,7 +72,7 @@ export function SearchField({ onPress, onNearbyPress }: SearchFieldProps) {
           onPress={onNearbyPress}
           pressedScale={0.9}
           accessibilityRole="button"
-          accessibilityLabel="Stations near me"
+          accessibilityLabel={t("Stations near me")}
           style={{
             width: 44,
             height: 44,

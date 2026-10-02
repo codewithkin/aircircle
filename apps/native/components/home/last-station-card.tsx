@@ -11,6 +11,7 @@ import type { Station } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { usePlayer } from "@/stores/player";
 import { colors, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /**
  * "Resume last station" — shown on Home when a station is loaded but stopped.
@@ -37,7 +38,7 @@ export function LastStationCard({ station }: { station: Station }) {
           <StationArt station={station} size={96} radius={22} showName />
         </View>
         <View style={{ flex: 1, gap: 5 }}>
-          <Eyebrow>Last station</Eyebrow>
+          <Eyebrow>{t("Last station")}</Eyebrow>
           <Txt variant="heading" numberOfLines={2} style={{ fontSize: 19, marginTop: 2 }}>
             {station.name}
           </Txt>
@@ -49,7 +50,7 @@ export function LastStationCard({ station }: { station: Station }) {
           {isFavorite ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
               <Icon name="favorite" size={16} filled />
-              <Txt variant="captionMedium">In Favorites</Txt>
+              <Txt variant="captionMedium">{t("In Favorites")}</Txt>
             </View>
           ) : null}
         </View>
@@ -57,25 +58,25 @@ export function LastStationCard({ station }: { station: Station }) {
 
       <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
         <Button
-          label="Resume"
+          label={t("Resume")}
           icon="play_arrow"
           iconFilled
           height={52}
           grow
           onPress={() => void usePlayer.getState().resume()}
-          accessibilityLabel={`Resume ${station.name}`}
+          accessibilityLabel={t("Resume {{name}}", { name: station.name })}
         />
         <IconButton
           icon="more_horiz"
           size={52}
           background={colors.chip}
           onPress={openMenu}
-          accessibilityLabel={`More actions for ${station.name}`}
+          accessibilityLabel={t("More actions for {{name}}", { name: station.name })}
         />
       </View>
 
       <Txt variant="caption" color={colors.inkSoft} style={{ marginTop: 12 }}>
-        We’ll remember this station here.
+        {t("We’ll remember this station here.")}
       </Txt>
     </View>
   );

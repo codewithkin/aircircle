@@ -14,6 +14,7 @@ import { isUnavailable, stationSubtitle } from "@/lib/station";
 import type { Station } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
 import { colors } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 type StationRowProps = {
   station: Station;
@@ -54,10 +55,10 @@ export function StationRow({
         onLongPress={openMenu}
         pressedScale={0.985}
         accessibilityRole="button"
-        accessibilityLabel={`${station.name}${subtitle ? `, ${subtitle}` : ""}${
-          unavailable ? ", offline right now" : ""
-        }`}
-        accessibilityHint="Opens the station. Long press for more actions."
+        accessibilityLabel={[station.name, subtitle, unavailable ? t("offline right now") : ""]
+          .filter(Boolean)
+          .join(", ")}
+        accessibilityHint={t("Opens the station. Long press for more actions.")}
         style={{
           minHeight: 76,
           flexDirection: "row",
@@ -100,7 +101,7 @@ export function StationRow({
               else void player.toggle();
             }}
             disabled={unavailable}
-            accessibilityLabel={playback === "playing" ? `Pause ${station.name}` : `Play ${station.name}`}
+            accessibilityLabel={playback === "playing" ? t("Pause {{name}}", { name: station.name }) : t("Play {{name}}", { name: station.name })}
           />
         ) : null}
       </PressableScale>
