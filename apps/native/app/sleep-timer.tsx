@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import type { GestureResponderEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
@@ -27,6 +28,10 @@ const RING = 290;
 const STROKE = 13;
 const RADIUS = (RING - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+/** One full turn of the ring is two hours; dragging snaps to five minutes. */
+const RING_MINUTES = 120;
+const SNAP_MINUTES = 5;
 
 function presetLabel(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -91,17 +96,62 @@ export default function SleepTimer() {
 
   // The preset highlighted before a timer is running.
   const [chosen, setChosen] = useState(defaultMinutes);
+  // Minutes under the finger while the ring is being dragged; null otherwise.
+  const [dragged, setDragged] = useState<number | null>(null);
+  const lastDragged = useRef<number | null>(null);
 
   const running = endsAt !== null;
   const now = useNow(running ? 1000 : null);
-  const remainingMs = running ? Math.max(0, endsAt - now) : chosen * 60_000;
-  const fraction = running && totalMs > 0 ? Math.min(1, remainingMs / totalMs) : 1;
-  const stopsAt = running ? endsAt : now + chosen * 60_000;
+  const dragging = dragged !== null;
+  const remainingMs = dragging
+    ? dragged * 60_000
+    : running
+      ? Math.max(0, endsAt - now)
+      : chosen * 60_000;
+  const fraction = dragging
+    ? dragged / RING_MINUTES
+    : running && totalMs > 0
+      ? Math.min(1, remainingMs / totalMs)
+      : 1;
+  const stopsAt = dragging ? now + dragged * 60_000 : running ? endsAt : now + chosen * 60_000;
+
+  /** Where the finger is on the ring, as minutes clockwise from 12 o'clock. */
+  const minutesAt = (e: GestureResponderEvent): number => {
+    const dx = e.nativeEvent.locationX - RING / 2;
+    const dy = e.nativeEvent.locationY - RING / 2;
+    let angle = Math.atan2(dx, -dy);
+    if (angle < 0) angle += 2 * Math.PI;
+    const minutes = Math.round(((angle / (2 * Math.PI)) * RING_MINUTES) / SNAP_MINUTES) * SNAP_MINUTES;
+    return Math.min(RING_MINUTES, Math.max(SNAP_MINUTES, minutes));
+  };
+
+  const onRingMove = (e: GestureResponderEvent) => {
+    const minutes = minutesAt(e);
+    if (minutes === lastDragged.current) return;
+    lastDragged.current = minutes;
+    // A light tick at every five-minute step.
+    haptics.tap();
+    setDragged(minutes);
+  };
+
+  const onRingRelease = () => {
+    const minutes = lastDragged.current;
+    lastDragged.current = null;
+    setDragged(null);
+    if (minutes === null) return;
+    setChosen(minutes);
+    if (station) {
+      haptics.confirm();
+      start(minutes);
+    }
+  };
 
   // Which preset the running countdown started from, if it matches one.
-  const activePreset = running
-    ? SLEEP_TIMER_PRESETS_MIN.find((m) => m * 60_000 === totalMs)
-    : chosen;
+  const activePreset = dragging
+    ? dragged
+    : running
+      ? SLEEP_TIMER_PRESETS_MIN.find((m) => m * 60_000 === totalMs)
+      : chosen;
 
   return (
     <Screen atmosphere="night" padTop={false}>
@@ -189,7 +239,7 @@ export default function SleepTimer() {
                 cy={RING / 2}
                 r={RADIUS}
                 stroke={colors.nightAccent}
-                strokeOpacity={running ? 1 : 0.35}
+                strokeOpacity={running || dragging ? 1 : 0.35}
                 strokeWidth={STROKE}
                 strokeLinecap="round"
                 fill="none"
@@ -206,18 +256,46 @@ export default function SleepTimer() {
                 variant="timer"
                 color={colors.onInk}
                 accessibilityLabel={
-                  running
+                  running && !dragging
                     ? `${Math.ceil(remainingMs / 60_000)} minutes left`
-                    : `${chosen} minutes selected`
+                    : `${dragging ? dragged : chosen} minutes selected`
                 }
                 style={{ fontVariant: ["tabular-nums"] }}
               >
                 {formatClock(remainingMs / 1000)}
               </Txt>
               <Txt variant="body" color={colors.nightText} style={{ lineHeight: 18 }}>
-                {running ? `Stops at ${formatTimeOfDay(stopsAt)}` : "Not set"}
+                {dragging
+                  ? `Release to stop at ${formatTimeOfDay(stopsAt)}`
+                  : running
+                    ? `Stops at ${formatTimeOfDay(stopsAt)}`
+                    : "Drag the ring or pick a time"}
               </Txt>
             </View>
+
+            {/* Drag anywhere on the ring to set a custom time. Sits above the
+                dial so touch positions are measured against the ring itself. */}
+            <View
+              accessible
+              accessibilityRole="adjustable"
+              accessibilityLabel="Sleep timer length"
+              accessibilityValue={{ text: `${dragging ? dragged : chosen} minutes` }}
+              accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+              onAccessibilityAction={(e) => {
+                const base = running ? Math.ceil(remainingMs / 60_000) : chosen;
+                const step = e.nativeEvent.actionName === "increment" ? SNAP_MINUTES : -SNAP_MINUTES;
+                const next = Math.min(RING_MINUTES, Math.max(SNAP_MINUTES, base + step));
+                setChosen(next);
+                if (station) start(next);
+              }}
+              onStartShouldSetResponder={() => true}
+              onMoveShouldSetResponder={() => true}
+              onResponderGrant={onRingMove}
+              onResponderMove={onRingMove}
+              onResponderRelease={onRingRelease}
+              onResponderTerminate={onRingRelease}
+              style={{ position: "absolute", width: RING, height: RING, borderRadius: RING / 2 }}
+            />
           </MotiView>
         </Rise>
 
