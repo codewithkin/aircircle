@@ -11,6 +11,7 @@ import { Uniwind } from "uniwind";
 import { QuickActions } from "@/components/station/quick-actions";
 import { ToastHost } from "@/components/ui/toast-host";
 import { startAudioRouteListener } from "@/lib/audio-route";
+import { startCarSync } from "@/lib/car-sync";
 import { startDataNoticeService } from "@/lib/playback/data-notice";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
 import { startRecordingGuard } from "@/lib/recording/recording-guard";
@@ -60,6 +61,7 @@ export default function Layout() {
     const unsubNowPlaying = startNowPlayingService();
     const unsubDataNotice = startDataNoticeService();
     const unsubAudioRoute = startAudioRouteListener();
+    const unsubCarSync = startCarSync();
 
     return () => {
       unsubNetwork();
@@ -69,6 +71,7 @@ export default function Layout() {
       unsubNowPlaying();
       unsubDataNotice();
       unsubAudioRoute();
+      unsubCarSync();
       releaseFeedbackSounds();
       releaseAllPlayers();
     };
