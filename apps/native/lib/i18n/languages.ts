@@ -7,6 +7,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: "es", nativeName: "Español", englishName: "Spanish", rtl: false },
   { code: "pt-BR", nativeName: "Português (Brasil)", englishName: "Portuguese", rtl: false },
   { code: "fr", nativeName: "Français", englishName: "French", rtl: false },
+  { code: "zh-Hans", nativeName: "简体中文", englishName: "Chinese (Simplified)", rtl: false },
   { code: "de", nativeName: "Deutsch", englishName: "German", rtl: false },
   { code: "it", nativeName: "Italiano", englishName: "Italian", rtl: false },
   { code: "ru", nativeName: "Русский", englishName: "Russian", rtl: false },

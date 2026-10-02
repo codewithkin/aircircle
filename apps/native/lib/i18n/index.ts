@@ -14,6 +14,7 @@ import it from "@/lib/i18n/locales/it.json";
 import ptBR from "@/lib/i18n/locales/pt-BR.json";
 import ru from "@/lib/i18n/locales/ru.json";
 import tr from "@/lib/i18n/locales/tr.json";
+import zhHans from "@/lib/i18n/locales/zh-Hans.json";
 import { getJson } from "@/lib/storage";
 
 /**
@@ -61,6 +62,7 @@ void i18next.init({
     es: { translation: es },
     "pt-BR": { translation: ptBR },
     fr: { translation: fr },
+    "zh-Hans": { translation: zhHans },
     de: { translation: de },
     it: { translation: it },
     ru: { translation: ru },
