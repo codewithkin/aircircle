@@ -19,6 +19,7 @@ import type { ListeningIntent } from "@/stores/onboarding";
 import { springs } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
 import { msg, t } from "@/lib/i18n";
+import { useStepViewed } from "@/lib/telemetry/use-step-viewed";
 
 const CARD = {
   borderRadius: 22,
@@ -59,6 +60,7 @@ const LINES: Record<ListeningIntent, { icon: IconName; text: string }> = {
  * description of a local arrangement — no claims of anything smarter.
  */
 export default function Ready() {
+  useStepViewed("ready");
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();

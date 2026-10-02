@@ -16,6 +16,7 @@ import { finishOnboarding } from "@/lib/onboarding";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts } from "@/theme/tokens";
 import { msg, t } from "@/lib/i18n";
+import { useStepViewed } from "@/lib/telemetry/use-step-viewed";
 
 const WAYS: { icon: IconName; title: string; detail: string }[] = [
   { icon: "radio", title: msg("Station"), detail: msg("Name or call sign") },
@@ -26,6 +27,7 @@ const WAYS: { icon: IconName; title: string; detail: string }[] = [
 
 /** The outcome, in one sentence, and the four ways to find a station. */
 export default function Welcome() {
+  useStepViewed("welcome");
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();

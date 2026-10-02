@@ -21,6 +21,7 @@ import { deviceCountryCode, finishOnboarding } from "@/lib/onboarding";
 import { useOnboarding } from "@/stores/onboarding";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
 import { msg, t } from "@/lib/i18n";
+import { useStepViewed } from "@/lib/telemetry/use-step-viewed";
 
 /** The order the genres are offered in. */
 const GENRE_ORDER = [
@@ -38,6 +39,7 @@ const GENRE_ORDER = [
 
 /** Step 2 of 2: genres and places to keep within reach. Everything optional. */
 export default function Taste() {
+  useStepViewed("taste");
   const router = useRouter();
   const insets = useSafeAreaInsets();
 

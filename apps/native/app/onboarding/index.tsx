@@ -25,6 +25,7 @@ import { stationGenres, stationSubtitle } from "@/lib/station";
 import { springs } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
 import { t } from "@/lib/i18n";
+import { useStepViewed } from "@/lib/telemetry/use-step-viewed";
 
 /**
  * A piece of the preview: springs into place, then drifts very slightly so the
@@ -73,6 +74,7 @@ function Floating({
  * from the directory — nothing here is invented.
  */
 export default function Preview() {
+  useStepViewed("preview");
   const router = useRouter();
   const insets = useSafeAreaInsets();
 

@@ -13,6 +13,7 @@ import { useOnboarding } from "@/stores/onboarding";
 import type { ListeningIntent } from "@/stores/onboarding";
 import { GUTTER, colors } from "@/theme/tokens";
 import { msg, t } from "@/lib/i18n";
+import { useStepViewed } from "@/lib/telemetry/use-step-viewed";
 
 const INTENTS: { value: ListeningIntent; icon: IconName; label: string }[] = [
   { value: "known-station", icon: "radio", label: msg("I already know a station.") },
@@ -25,6 +26,7 @@ const INTENTS: { value: ListeningIntent; icon: IconName; label: string }[] = [
 
 /** Step 1 of 2: what brings the listener to radio. Pick any number, or none. */
 export default function Intent() {
+  useStepViewed("intent");
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const intents = useOnboarding((s) => s.intents);
