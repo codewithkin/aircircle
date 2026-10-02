@@ -4,6 +4,7 @@ import { HeartButton } from "@/components/station/heart-button";
 import { PlayButton } from "@/components/station/play-button";
 import { StationArt } from "@/components/station/station-art";
 import { StationStatus } from "@/components/station/station-status";
+import { SwipeToFavorite } from "@/components/station/swipe-to-favorite";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { Rise } from "@/components/ui/rise";
 import { Txt } from "@/components/ui/txt";
@@ -25,6 +26,8 @@ type StationRowProps = {
   /** Tap behaviour. Rows open the station by default. */
   onPress?: () => void;
   onDark?: boolean;
+  /** Swiping the row left saves or unsaves the station. */
+  swipeToFavorite?: boolean;
 };
 
 /**
@@ -38,14 +41,14 @@ export function StationRow({
   divider = true,
   onPress,
   onDark = false,
+  swipeToFavorite = false,
 }: StationRowProps) {
   const { anchorRef, open, openMenu } = useStationActions(station);
   const playback = useStationPlayback(station);
   const unavailable = isUnavailable(station);
   const subtitle = stationSubtitle(station);
 
-  return (
-    <Rise index={index} offset={10}>
+  const row = (
       <PressableScale
         onPress={onPress ?? open}
         onLongPress={openMenu}
@@ -101,6 +104,11 @@ export function StationRow({
           />
         ) : null}
       </PressableScale>
+  );
+
+  return (
+    <Rise index={index} offset={10}>
+      {swipeToFavorite ? <SwipeToFavorite station={station}>{row}</SwipeToFavorite> : row}
     </Rise>
   );
 }
