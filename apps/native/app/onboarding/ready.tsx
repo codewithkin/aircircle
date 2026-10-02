@@ -18,6 +18,7 @@ import { useOnboarding } from "@/stores/onboarding";
 import type { ListeningIntent } from "@/stores/onboarding";
 import { springs } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 const CARD = {
   borderRadius: 22,
@@ -29,27 +30,27 @@ const CARD = {
 const LINES: Record<ListeningIntent, { icon: IconName; text: string }> = {
   "known-station": {
     icon: "search",
-    text: "We’ll keep Search prominent so you can get to a known station quickly.",
+    text: msg("We’ll keep Search prominent so you can get to a known station quickly."),
   },
   local: {
     icon: "home_pin",
-    text: "We’ll put hometown stations first and keep a place-based browse shortcut nearby.",
+    text: msg("We’ll put hometown stations first and keep a place-based browse shortcut nearby."),
   },
   discover: {
     icon: "public",
-    text: "We’ll keep Browse close so another country or genre is always a tap away.",
+    text: msg("We’ll keep Browse close so another country or genre is always a tap away."),
   },
   background: {
     icon: "work",
-    text: "We’ll put your Recents up front so a steady station is quick to get back to.",
+    text: msg("We’ll put your Recents up front so a steady station is quick to get back to."),
   },
   sleep: {
     icon: "bedtime",
-    text: "We’ll put calm stations and the Sleep Timer within reach.",
+    text: msg("We’ll put calm stations and the Sleep Timer within reach."),
   },
   simple: {
     icon: "tune",
-    text: "We’ll keep Home to the essentials: search, your stations, and play.",
+    text: msg("We’ll keep Home to the essentials: search, your stations, and play."),
   },
 };
 
@@ -70,17 +71,17 @@ export default function Ready() {
   if (lines.length === 0) {
     lines.push({
       icon: "search",
-      text: "We’ll start you with Search and stations that are popular right now.",
+      text: t("We’ll start you with Search and stations that are popular right now."),
     });
     if (genres.length > 0 || places.length > 0) {
       lines.push({
         icon: "place",
-        text: "Your places and genres will be one tap away at the top of Home.",
+        text: t("Your places and genres will be one tap away at the top of Home."),
       });
     }
   }
 
-  const label = [places[0], genres[0]].filter(Boolean).join(" · ") || "Popular now";
+  const label = [places[0], genres[0]].filter(Boolean).join(" · ") || t("Popular now");
   const wantsNearby = intents.includes("local") && places.length === 0;
 
   // The three cards lean in from slightly different angles, like a hand of cards.
@@ -125,10 +126,10 @@ export default function Ready() {
             <View style={[CARD, { paddingVertical: 16, paddingHorizontal: 18, flexDirection: "row", alignItems: "center", gap: 10 }]}>
               <Icon name={intents.includes("sleep") ? "bedtime" : "favorite"} size={20} />
               <Txt variant="bodyMedium" style={{ flex: 1 }}>
-                {intents.includes("sleep") ? "Wind down" : "Your Favorites"}
+                {intents.includes("sleep") ? t("Wind down") : t("Your Favorites")}
               </Txt>
               <Txt variant="captionMedium" color={colors.amber}>
-                {intents.includes("sleep") ? "Sleep timer" : "One tap"}
+                {intents.includes("sleep") ? t("Sleep timer") : t("One tap")}
               </Txt>
             </View>
           </MotiView>
@@ -160,7 +161,7 @@ export default function Ready() {
             >
               <Icon name="search" size={22} color={colors.inkSoft} />
               <Txt variant="body" color={colors.inkFaint} style={{ fontSize: 16, lineHeight: 20 }}>
-                Station, city or genre
+                {t("Station, city or genre")}
               </Txt>
             </View>
           </MotiView>
@@ -168,10 +169,10 @@ export default function Ready() {
 
         <Rise index={4} style={{ marginTop: 14 }}>
           <Txt variant="titleLg" accessibilityRole="header">
-            Your Home is ready to
+            {t("Your Home is ready to")}
           </Txt>
           <Txt style={{ fontFamily: fonts.serifItalic, fontSize: 40, lineHeight: 42, letterSpacing: -0.4, color: colors.ink }}>
-            sound like you.
+            {t("sound like you.")}
           </Txt>
         </Rise>
 
@@ -191,7 +192,7 @@ export default function Ready() {
                 <Icon name={line.icon} size={20} />
               </View>
               <Txt variant="body" style={{ flex: 1, paddingTop: 7 }}>
-                {line.text}
+                {t(line.text)}
               </Txt>
             </Rise>
           ))}
@@ -211,12 +212,12 @@ export default function Ready() {
           >
             <Icon name="smartphone" size={16} color={colors.inkSoft} />
             <Txt variant="caption" color={colors.inkSoft}>
-              Arranged on this device from your answers
+              {t("Arranged on this device from your answers")}
             </Txt>
           </View>
           {/* Local radio with no place chosen: offer Nearby next, after explaining it. */}
           <Button
-            label="Show my Home"
+            label={t("Show my Home")}
             onPress={() => finishOnboarding(router, wantsNearby ? "nearby" : undefined)}
           />
         </Rise>

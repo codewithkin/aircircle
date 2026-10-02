@@ -15,12 +15,13 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { finishOnboarding } from "@/lib/onboarding";
 import { timing } from "@/theme/motion";
 import { GUTTER, colors, fonts } from "@/theme/tokens";
+import { msg, t } from "@/lib/i18n";
 
 const WAYS: { icon: IconName; title: string; detail: string }[] = [
-  { icon: "radio", title: "Station", detail: "Name or call sign" },
-  { icon: "place", title: "Place", detail: "Country or city" },
-  { icon: "translate", title: "Language", detail: "What it speaks" },
-  { icon: "music_note", title: "Genre", detail: "What it plays" },
+  { icon: "radio", title: msg("Station"), detail: msg("Name or call sign") },
+  { icon: "place", title: msg("Place"), detail: msg("Country or city") },
+  { icon: "translate", title: msg("Language"), detail: msg("What it speaks") },
+  { icon: "music_note", title: msg("Genre"), detail: msg("What it plays") },
 ];
 
 /** The outcome, in one sentence, and the four ways to find a station. */
@@ -34,7 +35,7 @@ export default function Welcome() {
       <StatusBar style="light" />
       <OnboardingHeader
         onDark
-        skipLabel="Skip to Search"
+        skipLabel={t("Skip to Search")}
         onSkip={() => finishOnboarding(router, "search")}
       />
 
@@ -82,13 +83,12 @@ export default function Welcome() {
             accessibilityRole="header"
             style={{ fontFamily: fonts.serif, fontSize: 44, lineHeight: 45, letterSpacing: -0.44 }}
           >
-            Your next station is closer than you think.
+            {t("Your next station is closer than you think.")}
           </Txt>
         </Rise>
         <Rise index={2}>
           <Txt variant="body" color="#B8BCC8" style={{ marginTop: 16, fontSize: 16, lineHeight: 23 }}>
-            Aircircle helps you find live internet radio by station, place, language, or genre. No
-            account is needed to start.
+            {t("Aircircle helps you find live internet radio by station, place, language, or genre. No account is needed to start.")}
           </Txt>
         </Rise>
 
@@ -97,7 +97,7 @@ export default function Welcome() {
             <Rise key={way.title} index={3 + i} style={{ flexBasis: "47%", flexGrow: 1 }}>
               <View
                 accessible
-                accessibilityLabel={`${way.title}: ${way.detail}`}
+                accessibilityLabel={`${t(way.title)}: ${t(way.detail)}`}
                 style={{
                   borderRadius: 22,
                   backgroundColor: "rgba(255,255,255,0.06)",
@@ -121,10 +121,10 @@ export default function Welcome() {
                 </View>
                 <View style={{ gap: 4 }}>
                   <Txt variant="bodyLg" color={colors.onInk}>
-                    {way.title}
+                    {t(way.title)}
                   </Txt>
                   <Txt variant="caption" color={colors.nightText}>
-                    {way.detail}
+                    {t(way.detail)}
                   </Txt>
                 </View>
               </View>
@@ -137,12 +137,11 @@ export default function Welcome() {
         <Rise index={7} style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
           <Icon name="info" size={16} color={colors.nightText} />
           <Txt variant="caption" color={colors.nightText} style={{ flex: 1, lineHeight: 18 }}>
-            Internet connection required. Stations come from third-party broadcasters and may be
-            unavailable.
+            {t("Internet connection required. Stations come from third-party broadcasters and may be unavailable.")}
           </Txt>
         </Rise>
         <Rise index={8}>
-          <Button label="Continue" variant="white" onPress={() => router.push("/onboarding/intent")} />
+          <Button label={t("Continue")} variant="white" onPress={() => router.push("/onboarding/intent")} />
         </Rise>
       </ScrollView>
     </Screen>

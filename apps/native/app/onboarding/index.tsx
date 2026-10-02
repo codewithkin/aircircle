@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
@@ -8,6 +9,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StationArt } from "@/components/station/station-art";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { LanguageSheet, currentLanguageName } from "@/components/ui/language-sheet";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { EqBars, LiveDot } from "@/components/ui/live";
 import { LogoMark } from "@/components/ui/logo-mark";
 import { Rise } from "@/components/ui/rise";
@@ -21,6 +24,7 @@ import { finishOnboarding } from "@/lib/onboarding";
 import { stationGenres, stationSubtitle } from "@/lib/station";
 import { springs } from "@/theme/motion";
 import { GUTTER, colors, fonts, shadows } from "@/theme/tokens";
+import { t } from "@/lib/i18n";
 
 /**
  * A piece of the preview: springs into place, then drifts very slightly so the
@@ -75,6 +79,7 @@ export default function Preview() {
   const top = useAsync("onboarding:preview", () => getTopStations(1));
   const station = top.data?.[0] ?? null;
   const genre = station ? stationGenres(station, 1) : "";
+  const [languageOpen, setLanguageOpen] = useState(false);
 
   return (
     <Screen>
@@ -115,7 +120,7 @@ export default function Preview() {
             >
               <Icon name="search" size={22} color={colors.inkSoft} />
               <Txt variant="body" numberOfLines={1} style={{ flex: 1, fontSize: 16, lineHeight: 20 }}>
-                {station ? station.name.toLowerCase() : "station, city or genre"}
+                {station ? station.name.toLowerCase() : t("station, city or genre")}
               </Txt>
               <View
                 style={{
@@ -155,12 +160,12 @@ export default function Preview() {
                       {station.name}
                     </Txt>
                     <Txt variant="meta" color={colors.inkSoft} numberOfLines={1}>
-                      {stationSubtitle(station) || "Live radio"}
+                      {stationSubtitle(station) || t("Live radio")}
                     </Txt>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <LiveDot pulse />
                       <Txt variant="caption" color={colors.inkSoft}>
-                        Live now
+                        {t("Live now")}
                       </Txt>
                     </View>
                   </View>
@@ -224,7 +229,7 @@ export default function Preview() {
                       color={colors.onInk}
                       style={{ fontFamily: fonts.sansSemibold, fontSize: 11, letterSpacing: 0.66 }}
                     >
-                      LIVE
+                      {t("LIVE")}
                     </Txt>
                   </View>
                   <Txt variant="bodyMedium" color={colors.onInk} numberOfLines={1}>
@@ -247,7 +252,7 @@ export default function Preview() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <EqBars size={16} color="#B8BCC8" />
                 <Txt variant="caption" color="#B8BCC8" numberOfLines={1} style={{ flexShrink: 1 }}>
-                  Keeps playing with your phone locked
+                  {t("Keeps playing with your phone locked")}
                 </Txt>
               </View>
             </View>
@@ -256,9 +261,9 @@ export default function Preview() {
           <Floating delay={520} drift={3} style={{ left: 40, top: 372, flexDirection: "row" }}>
             <View style={{ flexDirection: "row", gap: 8 }}>
               {[
-                { label: "Nearby", icon: true, dark: false },
-                { label: genre || "Jazz", icon: false, dark: true },
-                { label: station?.country ?? "Anywhere", icon: false, dark: false },
+                { label: t("Nearby"), icon: true, dark: false },
+                { label: genre || t("Jazz"), icon: false, dark: true },
+                { label: station?.country ?? t("Anywhere"), icon: false, dark: false },
               ].map((chip) => (
                 <View
                   key={chip.label}
@@ -286,9 +291,30 @@ export default function Preview() {
 
         <Rise index={4} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <LogoMark />
-          <Txt variant="section" style={{ fontFamily: fonts.sansSemibold, letterSpacing: 0 }}>
+          <Txt variant="section" style={{ flex: 1, fontFamily: fonts.sansSemibold, letterSpacing: 0 }}>
             Aircircle
           </Txt>
+          {/* The first thing that can be changed: the language everything after this is in. */}
+          <PressableScale
+            onPress={() => setLanguageOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${t("Language")}: ${currentLanguageName()}`}
+            style={{
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: colors.card,
+              boxShadow: shadows.hairline,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingLeft: 11,
+              paddingRight: 10,
+            }}
+          >
+            <Icon name="language" size={17} />
+            <Txt variant="label">{currentLanguageName()}</Txt>
+            <Icon name="expand_more" size={18} />
+          </PressableScale>
         </Rise>
 
         <Rise index={5} style={{ marginTop: 16 }}>
@@ -296,7 +322,7 @@ export default function Preview() {
             accessibilityRole="header"
             style={{ fontFamily: fonts.sansMedium, fontSize: 34, lineHeight: 38, letterSpacing: -0.68, color: colors.ink }}
           >
-            Find live radio.
+            {t("Find live radio.")}
           </Txt>
           <Txt
             style={{
@@ -308,18 +334,18 @@ export default function Preview() {
               marginTop: 2,
             }}
           >
-            Keep listening.
+            {t("Keep listening.")}
           </Txt>
         </Rise>
 
         <Rise index={6}>
           <Txt variant="body" color={colors.inkSoft} style={{ marginTop: 12, fontSize: 16, lineHeight: 23 }}>
-            Search stations, start listening, and keep your favorites close.
+            {t("Search stations, start listening, and keep your favorites close.")}
           </Txt>
           <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="info" size={16} color={colors.inkFaint} />
             <Txt variant="caption" color={colors.inkFaint} style={{ flex: 1 }}>
-              Internet connection required. No account needed.
+              {t("Internet connection required. No account needed.")}
             </Txt>
           </View>
         </Rise>
@@ -328,15 +354,17 @@ export default function Preview() {
           index={7}
           style={{ flexDirection: "row", gap: 10, marginTop: 22, marginBottom: insets.bottom + 10 }}
         >
-          <Button label="Skip intro" variant="outline" onPress={() => finishOnboarding(router)} />
+          <Button label={t("Skip intro")} variant="outline" onPress={() => finishOnboarding(router)} />
           <Button
-            label="Explore live radio"
+            label={t("Explore live radio")}
             icon="arrow_forward"
             grow
             onPress={() => router.push("/onboarding/welcome")}
           />
         </Rise>
       </View>
+
+      <LanguageSheet visible={languageOpen} onClose={() => setLanguageOpen(false)} />
     </Screen>
   );
 }
