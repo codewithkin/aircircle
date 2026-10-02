@@ -20,6 +20,7 @@ import { RowListSkeleton } from "@/components/ui/skeleton";
 import { Txt } from "@/components/ui/txt";
 import { useAsync } from "@/hooks/use-async";
 import { getCountries, getCountryStates, getGenres, getLanguages } from "@/lib/api/radio-browser";
+import { localTimeIn } from "@/lib/country-time";
 import type { BrowseEntry } from "@/lib/api/radio-browser";
 import { haptics } from "@/lib/haptics";
 import { genreTag } from "@/lib/recommendations";
@@ -55,6 +56,9 @@ function BigRow({
   /** Small caps under the name, e.g. "YOUR COUNTRY". */
   highlight?: string;
 }) {
+  // For countries: the local time there, so the list hints at who is on air.
+  const time = localTimeIn(entry.code);
+
   return (
     <PressableScale
       onPress={onPress}
@@ -86,9 +90,18 @@ function BigRow({
         </Txt>
         {highlight ? <Eyebrow color={colors.inkSoft}>{highlight}</Eyebrow> : null}
       </View>
-      <Txt variant="meta" color={colors.inkSoft} style={{ fontVariant: ["tabular-nums"] }}>
-        {entry.stationCount.toLocaleString()}
-      </Txt>
+      {time ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <Icon name="schedule" size={15} color={colors.inkSoft} />
+          <Txt variant="meta" color={colors.inkSoft} style={{ fontVariant: ["tabular-nums"] }}>
+            {time}
+          </Txt>
+        </View>
+      ) : (
+        <Txt variant="meta" color={colors.inkSoft} style={{ fontVariant: ["tabular-nums"] }}>
+          {entry.stationCount.toLocaleString()}
+        </Txt>
+      )}
     </PressableScale>
   );
 }
