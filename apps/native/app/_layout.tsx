@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { Uniwind } from "uniwind";
 
+import { ShareSheet } from "@/components/player/share-sheet";
 import { QuickActions } from "@/components/station/quick-actions";
 import { ToastHost } from "@/components/ui/toast-host";
 import { startAudioRouteListener } from "@/lib/audio-route";
@@ -127,6 +128,7 @@ export default function Layout() {
         </Stack>
 
         <QuickActions />
+        <ShareSheet />
         <ToastHost />
       </KeyboardProvider>
     </GestureHandlerRootView>

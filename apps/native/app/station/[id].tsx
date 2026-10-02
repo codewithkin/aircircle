@@ -26,6 +26,7 @@ import { haptics } from "@/lib/haptics";
 import { FAILURE_COPY } from "@/lib/playback/copy";
 import type { PlaybackError } from "@/lib/playback/errors";
 import { canRecord } from "@/lib/recording/eligibility";
+import { share } from "@/components/player/share-sheet";
 import { shareStation } from "@/lib/share";
 import { isUnavailable, recallStation, stationGenres, stationLocality, stationPlace } from "@/lib/station";
 import type { Station } from "@/lib/types";
@@ -345,7 +346,7 @@ export default function StationDetail() {
             color={colors.onInk}
             background="rgba(255,255,255,0.2)"
             accessibilityLabel={`Share ${station.name}`}
-            onPress={() => void shareStation(station, playing ? nowPlaying : null)}
+            onPress={() => share(station, playing ? nowPlaying : null)}
           />
           <View ref={moreRef} collapsable={false}>
             <IconButton

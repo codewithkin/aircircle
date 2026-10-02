@@ -9,7 +9,7 @@ import { PressableScale } from "@/components/ui/pressable-scale";
 import { Txt } from "@/components/ui/txt";
 import { useNow } from "@/hooks/use-now";
 import { formatRemaining } from "@/lib/format";
-import { shareStation } from "@/lib/share";
+import { share } from "@/components/player/share-sheet";
 import type { Station } from "@/lib/types";
 import { useNowPlaying } from "@/stores/now-playing";
 import { usePlayer } from "@/stores/player";
@@ -102,8 +102,8 @@ export function ControlBar({ station }: { station: Station }) {
         icon="ios_share"
         label={`Share ${station.name}`}
         onPress={() => {
-          // The current title goes along only if it's fresh enough to be on screen.
-          void shareStation(station, useNowPlaying.getState().title);
+          // A fresh title is offered as an opt-in, never included by default.
+          share(station, useNowPlaying.getState().title);
         }}
       />
 
