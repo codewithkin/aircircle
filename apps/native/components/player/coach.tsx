@@ -211,6 +211,34 @@ export function Coach({ station }: { station: Station }) {
             Lock your phone or switch apps—use the system media controls to keep listening.
           </Txt>
         </View>
+        <View
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            marginTop: 14,
+            borderRadius: 20,
+            backgroundColor: colors.night,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <View style={{ flex: 1, gap: 3 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name="lock" size={13} color={colors.nightText} filled />
+              <Txt variant="tab" color={colors.nightText}>
+                Lock screen · Aircircle
+              </Txt>
+            </View>
+            <Txt variant="label" color={colors.onInk} numberOfLines={1}>
+              {station.name}
+            </Txt>
+          </View>
+          <Icon name="pause" size={26} color={colors.onInk} filled />
+          <Icon name="stop" size={22} color={colors.onInk} filled />
+        </View>
         <TipActions onSkip={skipTips}>
           <Button label="Got it" variant="signal" height={44} onPress={advanceTips} />
         </TipActions>
