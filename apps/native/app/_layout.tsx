@@ -17,6 +17,7 @@ import { startDataNoticeService } from "@/lib/playback/data-notice";
 import { startNetworkRecovery } from "@/lib/playback/network-recovery";
 import { startRecordingGuard } from "@/lib/recording/recording-guard";
 import { releaseFeedbackSounds } from "@/lib/sounds";
+import { startTelemetry } from "@/lib/telemetry/telemetrydeck";
 import { useFavorites } from "@/stores/favorites";
 import { startNetworkListener, useNetwork } from "@/stores/network";
 import { startNowPlayingService } from "@/stores/now-playing";
@@ -66,6 +67,7 @@ export default function Layout() {
     const unsubDataNotice = startDataNoticeService();
     const unsubAudioRoute = startAudioRouteListener();
     const unsubCarSync = startCarSync();
+    const stopTelemetry = startTelemetry();
 
     return () => {
       unsubNetwork();
@@ -76,6 +78,7 @@ export default function Layout() {
       unsubDataNotice();
       unsubAudioRoute();
       unsubCarSync();
+      stopTelemetry();
       releaseFeedbackSounds();
       releaseAllPlayers();
     };
