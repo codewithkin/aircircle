@@ -1,4 +1,7 @@
-import { usePlayer } from "@/stores/player";
+import { AppState } from "react-native";
+
+import { MAX_RECORDING_MS } from "@/lib/recording/recorder";
+import { onPlaybackHeartbeat, usePlayer } from "@/stores/player";
 import { useRecordings } from "@/stores/recordings";
 
 /**
@@ -11,6 +14,15 @@ import { useRecordings } from "@/stores/recordings";
  *
  * And the other way round: deleting the recording that is currently loaded
  * unloads it from the player, so nothing keeps pointing at a file that is gone.
+ *
+ * Two background safeguards as well:
+ *
+ *   - The length limit is enforced on the playback heartbeat, not only on a
+ *     timer, because a backgrounded app's timers can fire late.
+ *   - If the app is sent to the background while a recording is running and
+ *     nothing is playing, the recording is saved there and then. Without
+ *     audio playing the system is free to suspend the app, which would
+ *     otherwise cut the file off unsaved.
  */
 export function startRecordingGuard(): () => void {
   const unsubPlayer = usePlayer.subscribe((state) => {
@@ -33,8 +45,23 @@ export function startRecordingGuard(): () => void {
     }
   });
 
+  const unsubHeartbeat = onPlaybackHeartbeat(() => {
+    const active = useRecordings.getState().active;
+    if (active && Date.now() - active.startedAt >= MAX_RECORDING_MS) {
+      void useRecordings.getState().stop();
+    }
+  });
+
+  const appState = AppState.addEventListener("change", (next) => {
+    if (next !== "background") return;
+    if (!useRecordings.getState().active) return;
+    if (usePlayer.getState().status !== "playing") void useRecordings.getState().stop();
+  });
+
   return () => {
     unsubPlayer();
     unsubRecordings();
+    unsubHeartbeat();
+    appState.remove();
   };
 }
