@@ -71,7 +71,8 @@
         {
           "locationWhenInUsePermission": "Aircircle uses your approximate location to find radio stations near you."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
