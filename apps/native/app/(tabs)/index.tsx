@@ -5,6 +5,7 @@ import { HeroCard } from "@/components/home/hero-card";
 import { LastStationCard } from "@/components/home/last-station-card";
 import { OfflineHome } from "@/components/home/offline-home";
 import { SearchField } from "@/components/home/search-field";
+import { SimilarCard } from "@/components/home/similar-card";
 import { StationRow } from "@/components/station/station-row";
 import { StationCard, StationTile } from "@/components/station/station-tile";
 import { Button } from "@/components/ui/button";
@@ -152,6 +153,8 @@ export default function Home() {
         {lastStation ? (
           <Rise index={3} style={{ marginTop: 20, paddingHorizontal: GUTTER }}>
             <LastStationCard station={lastStation} />
+            <View style={{ height: 12 }} />
+            <SimilarCard station={lastStation} />
           </Rise>
         ) : null}
 
