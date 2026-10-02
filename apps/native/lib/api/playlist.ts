@@ -24,28 +24,38 @@ function extensionOf(url: string): string | null {
   }
 }
 
-function parsePls(text: string): string | null {
-  let best: { n: number; url: string } | null = null;
+/** Every stream a `.pls` lists, in its own order (File1, File2, …). */
+function parsePlsAll(text: string): string[] {
+  const entries: { n: number; url: string }[] = [];
 
   for (const rawLine of text.split(/\r?\n/)) {
     const match = /^\s*File(\d+)\s*=\s*(\S+)/i.exec(rawLine);
     if (!match) continue;
-    const n = Number(match[1]);
     const url = match[2].trim();
     if (!/^https?:\/\//i.test(url)) continue;
-    if (!best || n < best.n) best = { n, url };
+    entries.push({ n: Number(match[1]), url });
   }
 
-  return best?.url ?? null;
+  return entries.sort((a, b) => a.n - b.n).map((e) => e.url);
 }
 
-function parseM3u(text: string): string | null {
+/** Every stream a `.m3u` lists, top to bottom. */
+function parseM3uAll(text: string): string[] {
+  const urls: string[] = [];
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || line.startsWith("#")) continue;
-    if (/^https?:\/\//i.test(line)) return line;
+    if (/^https?:\/\//i.test(line)) urls.push(line);
   }
-  return null;
+  return urls;
+}
+
+function parsePls(text: string): string | null {
+  return parsePlsAll(text)[0] ?? null;
+}
+
+function parseM3u(text: string): string | null {
+  return parseM3uAll(text)[0] ?? null;
 }
 
 /**
@@ -96,4 +106,63 @@ export async function getPlayableStreamUrl(station: {
   const resolved = await resolvePlaylistUrl(candidate);
   resolvedUrlCache.set(station.stationuuid, resolved);
   return resolved;
+}
+
+/** A playlist link expanded to every stream inside it; any other link as itself. */
+async function expand(url: string): Promise<string[]> {
+  const ext = extensionOf(url);
+  if (ext !== "pls" && ext !== "m3u") return [url];
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Aircircle/1.0.0" },
+    });
+    if (!response.ok) return [url];
+
+    const text = await response.text();
+    const urls = ext === "pls" ? parsePlsAll(text) : parseM3uAll(text);
+    return urls.length > 0 ? urls : [url];
+  } catch {
+    return [url];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const candidateCache = new Map<string, string[]>();
+
+/**
+ * Every stream the directory gives for a station, best first.
+ *
+ * A station can have more than one way in: the address the directory resolved,
+ * the address the broadcaster originally published, and — when either is a
+ * playlist file — several mirrors listed inside it. The first is the primary
+ * stream; the rest are fallbacks to try when the primary won't start.
+ *
+ * These are only ever the broadcaster's own alternates for the same station.
+ * Nothing here substitutes a different station.
+ */
+export async function getStreamCandidates(station: {
+  stationuuid: string;
+  url: string;
+  urlResolved?: string;
+}): Promise<string[]> {
+  const cached = candidateCache.get(station.stationuuid);
+  if (cached) return cached;
+
+  const sources = [station.urlResolved, station.url].filter((u): u is string => !!u);
+  const expanded = await Promise.all(sources.map(expand));
+
+  const candidates: string[] = [];
+  for (const url of expanded.flat()) {
+    if (!candidates.includes(url)) candidates.push(url);
+  }
+  if (candidates.length === 0) candidates.push(station.urlResolved || station.url);
+
+  candidateCache.set(station.stationuuid, candidates);
+  return candidates;
 }
