@@ -17,6 +17,8 @@ import { startTelemetryInstrumentation } from "@/lib/telemetry/instrument";
 
 const APP_ID = process.env.EXPO_PUBLIC_TELEMETRYDECK_APP_ID ?? "";
 
+type Options = Parameters<typeof createTelemetryDeck>[0];
+
 /** The organisation namespace the app's signals are filed under. */
 const NAMESPACE = "com.manassehtechnologies";
 
@@ -42,8 +44,8 @@ export function startTelemetry(): () => void {
       // Development builds are filed as test signals, out of the real numbers.
       testMode: __DEV__,
       // expo-crypto's digest has the same shape as SubtleCrypto's.
-      subtleCrypto: { digest: ExpoCrypto.digest } as unknown as SubtleCrypto,
-    } as Parameters<typeof createTelemetryDeck>[0]);
+      subtleCrypto: { digest: ExpoCrypto.digest } as unknown as Options["subtleCrypto"],
+    });
 
     setTelemetrySender((type, payload) => {
       void deck
