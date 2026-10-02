@@ -3,6 +3,7 @@ import { MotiView } from "moti";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 
+import { FiltersSheet } from "@/components/search/filters-sheet";
 import { PickerSheet } from "@/components/search/picker-sheet";
 import { TopResult } from "@/components/search/top-result";
 import { StationRow } from "@/components/station/station-row";
@@ -131,6 +132,7 @@ export default function Search() {
     language: null,
   });
   const [picker, setPicker] = useState<Filter | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const recentSearches = useRecentSearches((s) => s.queries);
 
@@ -298,7 +300,13 @@ export default function Search() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingHorizontal: GUTTER, gap: 8 }}
         >
-          <Chip label="Browse" icon="tune" onPress={() => router.push("/browse")} />
+          <Chip
+            label="Filters"
+            icon="tune"
+            tone={hasFilters ? "signal" : "chip"}
+            selected={hasFilters}
+            onPress={() => setFiltersOpen(true)}
+          />
           {(
             [
               ["country", "Country"],
@@ -582,6 +590,7 @@ export default function Search() {
                           station={s}
                           index={i + 3}
                           divider={i < list.length - 1}
+                          swipeToFavorite
                         />
                       ))}
                     </View>
@@ -637,6 +646,14 @@ export default function Search() {
         )}
       </ScrollView>
 
+      <FiltersSheet
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        filters={filters}
+        onPick={setPicker}
+        onClear={() => setFilters({ country: null, genre: null, language: null })}
+        onBrowse={() => router.push("/browse")}
+      />
       <PickerSheet
         visible={picker === "country"}
         onClose={() => setPicker(null)}
