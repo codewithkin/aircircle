@@ -290,6 +290,7 @@ export default function SleepTimer() {
               }}
               onStartShouldSetResponder={() => true}
               onMoveShouldSetResponder={() => true}
+              onResponderTerminationRequest={() => false}
               onResponderGrant={onRingMove}
               onResponderMove={onRingMove}
               onResponderRelease={onRingRelease}
